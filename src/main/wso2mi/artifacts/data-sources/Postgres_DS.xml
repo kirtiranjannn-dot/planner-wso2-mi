@@ -1,0 +1,11 @@
+<datasource>
+    <name>Postgres_DS</name>
+    <definition type="RDBMS">
+        <configuration>
+            <driverClassName>org.postgresql.Driver</driverClassName>
+            <url>jdbc:postgresql://localhost:5434/planner_db_uat</url>
+            <username>ranjan</username>
+            <password>ranjan</password>
+        </configuration>
+    </definition>
+</datasource>
