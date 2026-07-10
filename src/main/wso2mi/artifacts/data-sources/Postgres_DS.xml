@@ -3,7 +3,7 @@
     <definition type="RDBMS">
         <configuration>
             <driverClassName>org.postgresql.Driver</driverClassName>
-            <url>jdbc:postgresql://localhost:5434/planner_db_uat</url>
+            <url>jdbc:postgresql://192.168.1.221:5434/planner_db_uat</url>
             <username>ranjan</username>
             <password>ranjan</password>
         </configuration>
