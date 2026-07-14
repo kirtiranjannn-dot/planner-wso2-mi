@@ -258,7 +258,6 @@
 <!-- ================== get user by username ============== -->
 
 <query id="getUserByUsernameQuery" useConfig="UserDataService_DSS">
-
     <sql>
         SELECT
             id,
@@ -278,7 +277,7 @@
             updated_by,
             updated_at
         FROM users
-        WHERE username = :username
+        WHERE username =:username
           AND is_deleted = FALSE;
     </sql>
 
@@ -316,6 +315,13 @@
     </call-query>
 
 </resource>
+
+<operation name="getUserByUsernameOP">
+     <call-query href="getUserByUsernameQuery">
+         <with-param name="username" query-param="username"/>
+     </call-query>
+
+</operation>
 
 <!-- ======================== get user by email ================= -->
 

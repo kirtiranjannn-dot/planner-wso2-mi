@@ -1,334 +1,436 @@
-<api name="planneruat" context="/planneruat"
-     xmlns="http://ws.apache.org/ns/synapse">
+<!-- Add XML Data --><api name="planneruat" context="/planneruat" xmlns="http://ws.apache.org/ns/synapse">
+    <!-- ================= Create User (Insert User) ============== -->
+   <resource methods="POST" uri-template="/users">
 
-<!-- ================= Create User (Insert User) ============== -->
+    <inSequence>
 
-    <resource methods="POST" uri-template="/users">
+        <!-- ================= JSON Schema Validation ================= -->
 
-        <inSequence>
+        <validate cache-schema="true">
+            <schema key="create-user-schema"/>
 
-            <payloadFactory media-type="json">
-                <format>
-                {
-                  "_postcreateUser":{
-                    "username":"$1",
-                    "email":"$2",
-                    "first_name":"$3",
-                    "last_name":"$4",
-                    "display_name":"$5",
-                    "profile_image":"$6",
-                    "tenant_id":"$7",
-                    "version":$8,
-                    "created_by":$9
-                  }
-                }
-                </format>
+            <on-fail>
 
-                <args>
-                    <arg evaluator="json" expression="$.username"/>
-                    <arg evaluator="json" expression="$.email"/>
-                    <arg evaluator="json" expression="$.first_name"/>
-                    <arg evaluator="json" expression="$.last_name"/>
-                    <arg evaluator="json" expression="$.display_name"/>
-                    <arg evaluator="json" expression="$.profile_image"/>
-                    <arg evaluator="json" expression="$.tenant_id"/>
-                    <arg evaluator="json" expression="$.version"/>
-                    <arg evaluator="json" expression="$.created_by"/>
-                </args>
-            </payloadFactory>
+                <payloadFactory media-type="json">
+                    <format>
+                    {
+                        "success":false,
+                        "message":"Invalid Request"
+                    }
+                    </format>
+                    <args/>
+                </payloadFactory>
 
-            <log level="full"/>
+                <property name="HTTP_SC"
+                          value="400"
+                          scope="axis2"/>
 
-            <!-- <dataServiceCall serviceName="UserDataService_DSS">
-                <source type="body"/>
+                <respond/>
 
-                <operations type="single">
-                    <operation name="createUser"/>
-                </operations>
+            </on-fail>
+
+        </validate>
+
+        <!-- ================= Save Original Request ================= -->
+
+        <enrich>
+            <source clone="true" type="body"/>
+            <target property="originalRequest"
+                    type="property"/>
+        </enrich>
+
+        <!-- ================= Read Username ================= -->
+
+        <property name="username" expression="json-eval($.username)" scope="default" type="STRING"/>
                 
-                <target type="body"/>
-            </dataServiceCall> -->
+        <!-- <log level="custom">
+            <property name="Username_Log" expression="get-property('username')"/>
+        </log>
+        <property name="uri.var.fullURL"
+          expression="fn:concat(
+              'http://localhost:8290/services/UserDataService_DSS/getUserByUsername?username=',get-property('username'))"/> -->
+
+        <payloadFactory media-type="xml">
+            <format>
+                <getUserByUsernameOP>
+                    <username>$1</username>
+                </getUserByUsernameOP>
+            </format>
+            <args>
+                <arg evaluator="xml" expression="get-property('username')"/>
+            </args>
+        </payloadFactory>
 
-            <call>
-                <endpoint>
-                    <http method="POST"
-                        uri-template="http://localhost:8290/services/UserDataService_DSS/createUser"/>
-                </endpoint>
-            </call>
-
-            <respond/>
-
-        </inSequence>
-
-        <faultSequence>
-            <log level="full"/>
-            <respond/>
-        </faultSequence>
-
-    </resource>
-
-
-
-    <!-- =========================== Get Users ========================== -->
-
-    <resource methods="GET" uri-template="/users">
-
-    <inSequence>
-
-        <call>
-
-            <endpoint>
-
-                <http method="GET"
-                      uri-template="http://localhost:8290/services/UserDataService_DSS/getAllUsers"/>
-
-            </endpoint>
-
-        </call>
-
-        <property name="messageType"
-                  value="application/json"
-                  scope="axis2"/>
-
-        <respond/>
-
-    </inSequence>
-
-    <faultSequence>
-
-        <log level="full"/>
-
-        <respond/>
-
-    </faultSequence>
-
-</resource>
-
-
-<!-- ==================== get user count ======================= -->
-
-<resource methods="GET" uri-template="/users/count">
-
-    <inSequence>
-
-        <property name="Accept"
-                  value="application/json"
-                  scope="transport"/>
-
-        <call>
-
-            <endpoint>
-
-                <http method="GET"
-                      uri-template="http://localhost:8290/services/UserDataService_DSS/getUserCount"/>
-
-            </endpoint>
-
-        </call>
-
-        <property name="messageType"
-                  value="application/json"
-                  scope="axis2"/>
-
-        <property name="ContentType"
-                  value="application/json"
-                  scope="axis2"/>
-
-        <respond/>
-
-    </inSequence>
-
-    <faultSequence>
-
-        <log level="full"/>
-
-        <respond/>
-
-    </faultSequence>
-
-</resource>
-
-
-
-
-<!-- =================  get user by uuid ================= -->
-
-<resource methods="GET" uri-template="/users/uuid/{uuid}">
-
-    <inSequence>
-
-        <property name="Accept"
-                  value="application/json"
-                  scope="transport"/>
-
-        <call>
-            <endpoint>
-                <http method="GET"
-                      uri-template="http://localhost:8290/services/UserDataService_DSS/getUserByUUID?uuid={uri.var.uuid}"/>
-            </endpoint>
-        </call>
-
-        <property name="messageType"
-                  value="application/json"
-                  scope="axis2"/>
-
-        <property name="ContentType"
-                  value="application/json"
-                  scope="axis2"/>
-
-        <respond/>
-
-    </inSequence>
-
-    <faultSequence>
-        <log level="full"/>
-        <respond/>
-    </faultSequence>
-
-</resource>
-
-
-<!-- ================ get user by username =============== -->
-
-<resource methods="GET" uri-template="/users/username/{username}">
-
-    <inSequence>
-
-        <property name="Accept"
-                  value="application/json"
-                  scope="transport"/>
-
-        <call>
-
-            <endpoint>
-
-                <http method="GET"
-                      uri-template="http://localhost:8290/services/UserDataService_DSS/getUserByUsername?username={uri.var.username}"/>
-
-            </endpoint>
-
-        </call>
-
-        <property name="messageType"
-                  value="application/json"
-                  scope="axis2"/>
-
-        <property name="ContentType"
-                  value="application/json"
-                  scope="axis2"/>
-
-        <respond/>
-
-    </inSequence>
-
-    <faultSequence>
-
-        <log level="full"/>
-
-        <respond/>
-
-    </faultSequence>
-
-</resource>
-
-
-<!-- ================= get user by email ================== -->
-
-<resource methods="GET" uri-template="/users/email/{email}">
-
-    <inSequence>
-
-        <property name="Accept"
-                  value="application/json"
-                  scope="transport"/>
         <log level="custom">
-    <property name="EMAIL" expression="get-property('uri.var.email')"/>
-</log>
+            <property expression="$body" name="!!! before hitting getUserByUsername !!!" xmlns:ns="http://org.apache.synapse/xsd" />
+        </log>
+
+
+        <!-- ================= Check Username ================= -->
+        <!-- <property action="remove" name="NO_ENTITY_BODY" scope="axis2" />
+        <property name="HTTP_METHOD" value="GET"  scope="axis2"/>
+         
+        <log level="custom">
+            <property name="Username_Log" expression="get-property('username')"/>
+            <property name="uri.var.fullURL" expression="get-property('uri.var.fullURL')"/>
+        </log>
         <call>
-
             <endpoint>
-
-                <http method="GET"
-                      uri-template="http://localhost:8290/services/UserDataService_DSS/getUserByEmail?email={uri.var.email}"/>
-
+             <http method="GET" uri-template="{uri.var.fullURL}"/>
             </endpoint>
+        </call>
+        <log level="full"/> -->
 
+
+        <property name="SOAPAction" scope="transport" type="STRING" value="urn:getUserByUsernameOP" />
+        <call>
+            <endpoint key="Get_User_By_Username_EP" />
         </call>
 
-        <property name="messageType"
-                  value="application/json"
-                  scope="axis2"/>
 
-        <property name="ContentType"
-                  value="application/json"
-                  scope="axis2"/>
+        <log level="custom">
+            <property name="After Get_User_By_Username_EP" value="Get_User_By_Username_EP"/>
+            <property name="Get_User_By_Username_DB_SC" expression="get-property('axis2','HTTP_SC')"/>
+            <property name="Get_User_By_Username_EP_Res" expression="json-eval($)" />
+        </log>
 
-        <respond/>
+        <!-- ================= Username Exists ================= -->
+
+        <property name="userDetails_Result" expression="json-eval($.User.UserDetails)" scope="default" type="STRING"/>
+
+        <filter xpath="get-property('userDetails_Result') != '' ">
+            <then>
+                <payloadFactory media-type="json">
+
+                    <format>
+                    {
+                      "success":false,
+                      "message":"Username already exists"
+                    }
+                    </format>
+
+                    <args/>
+
+                </payloadFactory>
+
+                <property name="HTTP_SC"
+                          value="409"
+                          scope="axis2"/>
+
+                <respond/>
+
+            </then>
+            <else />
+        </filter>
+
+        <!-- ================= Restore Request ================= -->
+
+        <!-- <enrich>
+
+            <source property="originalRequest"
+                    type="property"/>
+
+            <target type="body"/>
+
+        </enrich> -->
+
+        <!-- ================= Read Email ================= -->
+<!-- 
+        <property name="uri.var.email"
+                  expression="json-eval($.email)"/>
+        <log level="full"/> -->
+
+        <!-- ================= Check Email ================= -->
+
+        <!-- <call>
+
+              <endpoint>
+                 <http method="GET"
+              uri-template="http://localhost:8290/services/UserDataService_DSS/getUserByEmail?email={uri.var.email}"/>
+              </endpoint>
+        </call>
+         <log level="full"/> -->
+        <!-- ================= Email Exists ================= -->
+
+        <!-- <filter xpath="count(//UserDetails) > 0">
+
+            <then>
+
+                <payloadFactory media-type="json">
+
+                    <format>
+                    {
+                      "success":false,
+                      "message":"Email already exists"
+                    }
+                    </format>
+
+                    <args/>
+
+                </payloadFactory>
+
+                <property name="HTTP_SC"
+                          value="409"
+                          scope="axis2"/>
+
+                <respond/>
+
+            </then>
+
+        </filter> -->
+
+        <!-- ================= Restore Original Request ================= -->
+
+        <!-- <enrich>
+
+            <source property="originalRequest"
+                    type="property"/>
+
+            <target type="body"/>
+
+        </enrich> -->
+
+        <!-- ================= Convert to DSS Payload ================= -->
+
+        <!-- <payloadFactory media-type="json">
+
+            <format>
+            {
+              "_postcreateUser":{
+
+                "username":"$1",
+
+                "email":"$2",
+
+                "first_name":"$3",
+
+                "last_name":"$4",
+
+                "display_name":"$5",
+
+                "profile_image":"$6",
+
+                "tenant_id":"$7",
+
+                "version":$8,
+
+                "created_by":$9
+
+              }
+            }
+            </format>
+
+            <args>
+
+                <arg evaluator="json"
+                     expression="$.username"/>
+
+                <arg evaluator="json"
+                     expression="$.email"/>
+
+                <arg evaluator="json"
+                     expression="$.first_name"/>
+
+                <arg evaluator="json"
+                     expression="$.last_name"/>
+
+                <arg evaluator="json"
+                     expression="$.display_name"/>
+
+                <arg evaluator="json"
+                     expression="$.profile_image"/>
+
+                <arg evaluator="json"
+                     expression="$.tenant_id"/>
+
+                <arg evaluator="json"
+                     expression="$.version"/>
+
+                <arg evaluator="json"
+                     expression="$.created_by"/>
+
+            </args>
+
+        </payloadFactory> -->
+
+        <!-- ================= Create User ================= -->
+
+        <!-- <call>
+
+            <endpoint>
+             <http method="POST"
+              uri-template="http://localhost:8290/services/UserDataService_DSS/createUser"/>
+            </endpoint>
+
+        </call> -->
+<!-- 
+        <payloadFactory media-type="json">
+
+            <format>
+
+            {
+              "success":true,
+              "message":"User created successfully"
+            }
+
+            </format>
+
+            <args/>
+
+        </payloadFactory> -->
+
+        <!-- <property name="HTTP_SC"
+                  value="201"
+                  scope="axis2"/>    -->
+        
+        <respond/> 
 
     </inSequence>
 
     <faultSequence>
 
         <log level="full"/>
-
-        <respond/>
-
-    </faultSequence>
-
-</resource>
-
-<!-- ==================== get users by id ======================= -->
-
-        <resource methods="GET" uri-template="/users/{id}">
-
-    <inSequence>
-
-        <call>
-
-            <endpoint>
-
-                <http
-                    method="GET"
-                    uri-template="http://localhost:8290/services/UserDataService_DSS/getUserById?id={uri.var.id}"/>
-
-            </endpoint>
-
-        </call>
-
-        <property name="messageType"
-          value="application/json"
-          scope="axis2"/>
-
-<property name="ContentType"
-          value="application/json"
-          scope="axis2"/>
-
-<respond/>
-
-    </inSequence>
-
-    <faultSequence>
-
-        <log level="full"/>
-
-        <respond/>
-
-    </faultSequence>
-
-</resource>
-
-
-<!-- ====================== put update user =================== -->
-
-<resource methods="PUT" uri-template="/users/{id}">
-
-    <inSequence>
 
         <payloadFactory media-type="json">
 
             <format>
+
             {
-                "_putupdateUser":{
+              "success":false,
+              "message":"Internal Server Error"
+            }
+
+            </format>
+
+            <args/>
+
+        </payloadFactory>
+
+        <property name="HTTP_SC"
+                  value="500"
+                  scope="axis2"/>
+
+        <respond/>
+
+    </faultSequence>
+
+</resource>
+    <!-- =========================== Get Users ========================== -->
+    <resource methods="GET" uri-template="/users">
+        <inSequence>
+            <call>
+                <endpoint>
+                    <http method="GET" uri-template="http://localhost:8290/services/UserDataService_DSS/getAllUsers"/>
+                </endpoint>
+            </call>
+            <property name="messageType" value="application/json" scope="axis2"/>
+            <respond/>
+        </inSequence>
+        <faultSequence>
+            <log level="full"/>
+            <respond/>
+        </faultSequence>
+    </resource>
+    <!-- ==================== get user count ======================= -->
+    <resource methods="GET" uri-template="/users/count">
+        <inSequence>
+            <property name="Accept" value="application/json" scope="transport"/>
+            <call>
+                <endpoint>
+                    <http method="GET" uri-template="http://localhost:8290/services/UserDataService_DSS/getUserCount"/>
+                </endpoint>
+            </call>
+            <property name="messageType" value="application/json" scope="axis2"/>
+            <property name="ContentType" value="application/json" scope="axis2"/>
+            <respond/>
+        </inSequence>
+        <faultSequence>
+            <log level="full"/>
+            <respond/>
+        </faultSequence>
+    </resource>
+    <!-- =================  get user by uuid ================= -->
+    <resource methods="GET" uri-template="/users/uuid/{uuid}">
+        <inSequence>
+            <property name="Accept" value="application/json" scope="transport"/>
+            <call>
+                <endpoint>
+                    <http method="GET" uri-template="http://localhost:8290/services/UserDataService_DSS/getUserByUUID?uuid={uri.var.uuid}"/>
+                </endpoint>
+            </call>
+            <property name="messageType" value="application/json" scope="axis2"/>
+            <property name="ContentType" value="application/json" scope="axis2"/>
+            <respond/>
+        </inSequence>
+        <faultSequence>
+            <log level="full"/>
+            <respond/>
+        </faultSequence>
+    </resource>
+    <!-- ================ get user by username =============== -->
+    <resource methods="GET" uri-template="/users/username/{username}">
+        <inSequence>
+            <property name="Accept" value="application/json" scope="transport"/>
+            <call>
+                <endpoint>
+                    <http method="GET" uri-template="http://localhost:8290/services/UserDataService_DSS/getUserByUsername?username={uri.var.username}"/>
+                </endpoint>
+            </call>
+            <log level="full"/>
+            <property name="messageType" value="application/json" scope="axis2"/>
+            <property name="ContentType" value="application/json" scope="axis2"/>
+            <respond/>
+        </inSequence>
+        <faultSequence>
+            <log level="full"/>
+            <respond/>
+        </faultSequence>
+    </resource>
+    <!-- ================= get user by email ================== -->
+    <resource methods="GET" uri-template="/users/email/{email}">
+        <inSequence>
+            <property name="Accept" value="application/json" scope="transport"/>
+            <log level="custom">
+                <property name="EMAIL" expression="get-property('uri.var.email')"/>
+            </log>
+            <call>
+                <endpoint>
+                    <http method="GET" uri-template="http://localhost:8290/services/UserDataService_DSS/getUserByEmail?email={uri.var.email}"/>
+                </endpoint>
+            </call>
+            <property name="messageType" value="application/json" scope="axis2"/>
+            <property name="ContentType" value="application/json" scope="axis2"/>
+            <respond/>
+        </inSequence>
+        <faultSequence>
+            <log level="full"/>
+            <respond/>
+        </faultSequence>
+    </resource>
+    <!-- ==================== get users by id ======================= -->
+    <resource methods="GET" uri-template="/users/{id}">
+        <inSequence>
+            <call>
+                <endpoint>
+                    <http method="GET" uri-template="http://localhost:8290/services/UserDataService_DSS/getUserById?id={uri.var.id}"/>
+                </endpoint>
+            </call>
+            <property name="messageType" value="application/json" scope="axis2"/>
+            <property name="ContentType" value="application/json" scope="axis2"/>
+            <respond/>
+        </inSequence>
+        <faultSequence>
+            <log level="full"/>
+            <respond/>
+        </faultSequence>
+    </resource>
+    <!-- ====================== put update user =================== -->
+    <resource methods="PUT" uri-template="/users/{id}">
+        <inSequence>
+            <payloadFactory media-type="json">
+                <format>
+                    {
+                    "_putupdateUser":{
                     "id":$1,
                     "username":"$2",
                     "email":"$3",
@@ -339,266 +441,155 @@
                     "tenant_id":"$8",
                     "version":$9,
                     "updated_by":$10
-                }
-            }
-            </format>
-
-            <args>
-                <arg expression="get-property('uri.var.id')"/>
-                <arg evaluator="json" expression="$.username"/>
-                <arg evaluator="json" expression="$.email"/>
-                <arg evaluator="json" expression="$.first_name"/>
-                <arg evaluator="json" expression="$.last_name"/>
-                <arg evaluator="json" expression="$.display_name"/>
-                <arg evaluator="json" expression="$.profile_image"/>
-                <arg evaluator="json" expression="$.tenant_id"/>
-                <arg evaluator="json" expression="$.version"/>
-                <arg evaluator="json" expression="$.updated_by"/>
-            </args>
-
-        </payloadFactory>
-
-        <property name="Accept"
-                  value="application/json"
-                  scope="transport"/>
-
-        <call>
-
-            <endpoint>
-
-                <http method="PUT"
-                      uri-template="http://localhost:8290/services/UserDataService_DSS/updateUser"/>
-
-            </endpoint>
-
-        </call>
-
-        <property name="messageType"
-                  value="application/json"
-                  scope="axis2"/>
-
-        <property name="ContentType"
-                  value="application/json"
-                  scope="axis2"/>
-
-        <respond/>
-
-    </inSequence>
-
-    <faultSequence>
-
-        <log level="full"/>
-
-        <respond/>
-
-    </faultSequence>
-
-</resource>
-
-
-<!--  ========================== soft delete user ======================= -->
-
-<resource methods="DELETE" uri-template="/users/{id}">
-
-    <inSequence>
-
-        <payloadFactory media-type="json">
-            <format>
-            {
-                "_deletedeleteUser":{
+                    }
+                    }
+                </format>
+                <args>
+                    <arg expression="get-property('uri.var.id')"/>
+                    <arg evaluator="json" expression="$.username"/>
+                    <arg evaluator="json" expression="$.email"/>
+                    <arg evaluator="json" expression="$.first_name"/>
+                    <arg evaluator="json" expression="$.last_name"/>
+                    <arg evaluator="json" expression="$.display_name"/>
+                    <arg evaluator="json" expression="$.profile_image"/>
+                    <arg evaluator="json" expression="$.tenant_id"/>
+                    <arg evaluator="json" expression="$.version"/>
+                    <arg evaluator="json" expression="$.updated_by"/>
+                </args>
+            </payloadFactory>
+            <property name="Accept" value="application/json" scope="transport"/>
+            <call>
+                <endpoint>
+                    <http method="PUT" uri-template="http://localhost:8290/services/UserDataService_DSS/updateUser"/>
+                </endpoint>
+            </call>
+            <property name="messageType" value="application/json" scope="axis2"/>
+            <property name="ContentType" value="application/json" scope="axis2"/>
+            <respond/>
+        </inSequence>
+        <faultSequence>
+            <log level="full"/>
+            <respond/>
+        </faultSequence>
+    </resource>
+    <!--  ========================== soft delete user ======================= -->
+    <resource methods="DELETE" uri-template="/users/{id}">
+        <inSequence>
+            <payloadFactory media-type="json">
+                <format>
+                    {
+                    "_deletedeleteUser":{
                     "id":$1,
                     "deleted_by":$2
-                }
-            }
-            </format>
-
-            <args>
-                <arg expression="get-property('uri.var.id')"/>
-                <arg evaluator="json" expression="$.deleted_by"/>
-            </args>
-
-        </payloadFactory>
-
-        <property name="Accept"
-                  value="application/json"
-                  scope="transport"/>
-
-        <call>
-
-            <endpoint>
-
-                <http method="DELETE"
-                      uri-template="http://localhost:8290/services/UserDataService_DSS/deleteUser"/>
-
-            </endpoint>
-
-        </call>
-
-        <payloadFactory media-type="json">
-            <format>
-            {
-                "message":"User deleted successfully"
-            }
-            </format>
-            <args/>
-        </payloadFactory>
-
-        <property name="messageType"
-                  value="application/json"
-                  scope="axis2"/>
-
-        <property name="ContentType"
-                  value="application/json"
-                  scope="axis2"/>
-
-        <respond/>
-
-    </inSequence>
-
-    <faultSequence>
-
-        <log level="full"/>
-
-        <respond/>
-
-    </faultSequence>
-
-</resource>
-
-<!-- ============================  put user activate ===================== -->
-
-<resource methods="PUT" uri-template="/users/{id}/activate">
-
-    <inSequence>
-
-        <payloadFactory media-type="json">
-    <format>
-    {
-        "_putactivateUser":{
-            "id":$1,
-            "updated_by":$2
-        }
-    }
-    </format>
-
-    <args>
-        <arg expression="get-property('uri.var.id')"/>
-        <arg evaluator="json" expression="$.updated_by"/>
-    </args>
-        </payloadFactory>
-
-        <property name="Accept"
-                  value="application/json"
-                  scope="transport"/>
-
-        <call>
-            <endpoint>
-                <http method="PUT"
-                      uri-template="http://localhost:8290/services/UserDataService_DSS/activateUser"/>
-            </endpoint>
-        </call>
-
-        <payloadFactory media-type="json">
-            <format>
-            {
-                "message":"User activated successfully"
-            }
-            </format>
-            <args/>
-        </payloadFactory>
-
-        <property name="messageType"
-                  value="application/json"
-                  scope="axis2"/>
-
-        <property name="ContentType"
-                  value="application/json"
-                  scope="axis2"/>
-
-        <respond/>
-
-    </inSequence>
-
-    <faultSequence>
-        <log level="full"/>
-        <respond/>
-    </faultSequence>
-
-</resource>
-
-<!-- ================= put user deactivate ======================= -->
-<resource methods="PUT" uri-template="/users/{id}/deactivate">
-
-    <inSequence>
-
-        <payloadFactory media-type="json">
-
-            <format>
-            {
-                "_putdeactivateUser":{
+                    }
+                    }
+                </format>
+                <args>
+                    <arg expression="get-property('uri.var.id')"/>
+                    <arg evaluator="json" expression="$.deleted_by"/>
+                </args>
+            </payloadFactory>
+            <property name="Accept" value="application/json" scope="transport"/>
+            <call>
+                <endpoint>
+                    <http method="DELETE" uri-template="http://localhost:8290/services/UserDataService_DSS/deleteUser"/>
+                </endpoint>
+            </call>
+            <payloadFactory media-type="json">
+                <format>
+                    {
+                    "message":"User deleted successfully"
+                    }
+                </format>
+                <args/>
+            </payloadFactory>
+            <property name="messageType" value="application/json" scope="axis2"/>
+            <property name="ContentType" value="application/json" scope="axis2"/>
+            <respond/>
+        </inSequence>
+        <faultSequence>
+            <log level="full"/>
+            <respond/>
+        </faultSequence>
+    </resource>
+    <!-- ============================  put user activate ===================== -->
+    <resource methods="PUT" uri-template="/users/{id}/activate">
+        <inSequence>
+            <payloadFactory media-type="json">
+                <format>
+                    {
+                    "_putactivateUser":{
                     "id":$1,
                     "updated_by":$2
-                }
-            }
-            </format>
-
-            <args>
-                <arg expression="get-property('uri.var.id')"/>
-                <arg evaluator="json" expression="$.updated_by"/>
-            </args>
-
-        </payloadFactory>
-
-        <property name="Accept"
-                  value="application/json"
-                  scope="transport"/>
-
-        <call>
-
-            <endpoint>
-
-                <http method="PUT"
-                      uri-template="http://localhost:8290/services/UserDataService_DSS/deactivateUser"/>
-
-            </endpoint>
-
-        </call>
-
-        <payloadFactory media-type="json">
-
-            <format>
-            {
-                "message":"User deactivated successfully"
-            }
-            </format>
-
-            <args/>
-
-        </payloadFactory>
-
-        <property name="messageType"
-                  value="application/json"
-                  scope="axis2"/>
-
-        <property name="ContentType"
-                  value="application/json"
-                  scope="axis2"/>
-
-        <respond/>
-
-    </inSequence>
-
-    <faultSequence>
-
-        <log level="full"/>
-
-        <respond/>
-
-    </faultSequence>
-
-</resource>
-
-
-
-
+                    }
+                    }
+                </format>
+                <args>
+                    <arg expression="get-property('uri.var.id')"/>
+                    <arg evaluator="json" expression="$.updated_by"/>
+                </args>
+            </payloadFactory>
+            <property name="Accept" value="application/json" scope="transport"/>
+            <call>
+                <endpoint>
+                    <http method="PUT" uri-template="http://localhost:8290/services/UserDataService_DSS/activateUser"/>
+                </endpoint>
+            </call>
+            <payloadFactory media-type="json">
+                <format>
+                    {
+                    "message":"User activated successfully"
+                    }
+                </format>
+                <args/>
+            </payloadFactory>
+            <property name="messageType" value="application/json" scope="axis2"/>
+            <property name="ContentType" value="application/json" scope="axis2"/>
+            <respond/>
+        </inSequence>
+        <faultSequence>
+            <log level="full"/>
+            <respond/>
+        </faultSequence>
+    </resource>
+    <!-- ================= put user deactivate ======================= -->
+    <resource methods="PUT" uri-template="/users/{id}/deactivate">
+        <inSequence>
+            <payloadFactory media-type="json">
+                <format>
+                    {
+                    "_putdeactivateUser":{
+                    "id":$1,
+                    "updated_by":$2
+                    }
+                    }
+                </format>
+                <args>
+                    <arg expression="get-property('uri.var.id')"/>
+                    <arg evaluator="json" expression="$.updated_by"/>
+                </args>
+            </payloadFactory>
+            <property name="Accept" value="application/json" scope="transport"/>
+            <call>
+                <endpoint>
+                    <http method="PUT" uri-template="http://localhost:8290/services/UserDataService_DSS/deactivateUser"/>
+                </endpoint>
+            </call>
+            <payloadFactory media-type="json">
+                <format>
+                    {
+                    "message":"User deactivated successfully"
+                    }
+                </format>
+                <args/>
+            </payloadFactory>
+            <property name="messageType" value="application/json" scope="axis2"/>
+            <property name="ContentType" value="application/json" scope="axis2"/>
+            <respond/>
+        </inSequence>
+        <faultSequence>
+            <log level="full"/>
+            <respond/>
+        </faultSequence>
+    </resource>
 </api>

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<localEntry key="create-user-schema" xmlns="http://ws.apache.org/ns/synapse">
+    <![CDATA[{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Create User",
+  "type": "object",
+
+  "required": [
+    "username",
+    "email",
+    "first_name",
+    "last_name",
+    "display_name",
+    "tenant_id",
+    "version",
+    "created_by"
+  ],
+
+  "properties": {
+
+    "username": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_ -]*$",
+      "minLength": 3,
+      "maxLength": 50
+    },
+
+    "email": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$",
+      "minLength": 5,
+      "maxLength": 150
+    },
+
+    "first_name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+
+    "last_name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+
+    "display_name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+
+    "profile_image": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+
+    "tenant_id": {
+      "type": "string"
+    },
+
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+
+    "created_by": {
+      "type": "integer",
+      "minimum": 1
+    }
+
+  },
+
+  "additionalProperties": false
+}]]>
+</localEntry>
