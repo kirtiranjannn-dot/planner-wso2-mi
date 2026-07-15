@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<api context="/ValidateUser" name="ValidateUserApi" xmlns="http://ws.apache.org/ns/synapse">
+    <resource methods="POST" uri-template="/Plans">
+        <inSequence>
+            
+            <enrich>
+                <source clone="true" type="body" />
+                <target property="originalRequest" type="property"/>
+            </enrich>
+            <!-- LOG ENTIRE INCOMING REQUEST -->
+
+            <property name="user_id" expression="json-eval($.owner_id)" scope="default" type="STRING"/>
+            <payloadFactory media-type="xml">
+                <format>
+                    <getUserOP>
+                        <owner_id>$1</owner_id>
+                    </getUserOP>
+                </format>
+                <args>
+                    <arg evaluator="xml" expression="get-property('user_id')"/>
+                </args>
+            </payloadFactory>  
+            
+                      
+            <log level="custom">
+                <property name="STEP" value="VALIDATING USER"/>
+                <property name="USER_ID" expression="get-property('user_id')"/>
+            </log>
+            
+            <!-- CALL DATA SOURCE TO CHECK USER -->
+
+            <property name="SOAPAction" scope="transport" type="STRING" value="urn:getUserOP"/>
+            <call>
+                <endpoint key="Get_user_EP"/>
+            </call>
+            
+            <!-- LOG ENTIRE RESPONSE FROM DATA SOURCE -->
+            <log level="full">
+                <property name="DATA SOURCE VALIDATE RESPONSE" value="RECEIVED"/>
+            </log>
+            
+            <!-- CHECK IF USER FOUND -->
+            <filter xpath="count(//*[local-name()='id']) = 1">
+                <then>
+                    <enrich>
+                        <source property="originalRequest" type="property"/>
+                        <target type="body"/>
+                    </enrich>
+                    
+                    <payloadFactory media-type="json">
+                        <format>
+                            {
+                                    "_postplans": {
+                                        "name": "$1",
+                                        "description": "$2",
+                                        "owner_id": $3,
+                                        "icon": "$4",
+                                        "visibility": "$5",
+                                        "start_date": "$6",
+                                        "end_date": "$7",
+                                        "tenant_id": "$8",
+                                        "version": $9,
+                                        "created_by": $10,
+                                        "color":"$11"
+                                        "status":"$12"
+                                    }
+                            }
+                        </format>
+                        <args>
+                            <arg evaluator="json" expression="$.name"/>
+                            <arg evaluator="json" expression="$.description"/>
+                            <arg evaluator="json" expression="$.owner_id"/>
+                            <arg evaluator="json" expression="$.icon"/>
+                            <arg evaluator="json" expression="$.visibility"/>
+                            <arg evaluator="json" expression="$.start_date"/>
+                            <arg evaluator="json" expression="$.end_date"/>
+                            <arg evaluator="json" expression="$.tenant_id"/>
+                            <arg evaluator="json" expression="$.version"/>
+                            <arg evaluator="json" expression="$.created_by"/>
+                            <arg evaluator="json" expression="$.color"/>
+                            <arg evaluator="json" expression="$.status"/>
+
+                        </args>
+
+                    </payloadFactory>
+
+                    <call>
+                        <endpoint>
+                            <http method="POST"
+                                uri-template="http://localhost:8290/services/PlanDataService_DSS/plans"/>
+                        </endpoint>
+                    </call>
+                    <respond/>
+                </then>
+
+                <else>
+
+                    <property name="messageType" value="application/json" scope="axis2"/>
+
+                    <payloadFactory media-type="json">
+                        <format>
+                            {
+                                "status": "FAILURE", 
+                                "error": "USER_NOT_FOUND", 
+                                "message": "User id $1 does not exist"
+                            }
+                        </format>
+                        <args>
+                            <arg evaluator="xml" expression="get-property('user_id')"/>
+                        </args>
+                    </payloadFactory>
+                    
+                 
+                    <log level="custom">
+                        <property name="FINAL RESPONSE" value="404 NOT FOUND"/>
+                    </log>
+                    
+                    <property name="HTTP_SC" value="404" scope="axis2"/>
+
+                    <respond/>
+                </else>
+
+            </filter>
+
+
+        </inSequence>
+
+        <faultSequence>
+            <log level="full">
+                <property name="FAULT" value="ERROR OCCURRED"/>
+            </log>
+
+            <property name="messageType" value="application/json" scope="axis2"/>
+
+            <payloadFactory media-type="json">
+                <format>
+                        {"status": "ERROR", "message": "DB Connection or DS Error"}
+                </format>
+            </payloadFactory>
+
+            <property name="HTTP_SC" value="500" scope="axis2"/>
+
+            <respond/>
+        </faultSequence>
+    </resource>
+</api>

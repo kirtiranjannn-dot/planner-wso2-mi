@@ -1,0 +1,65 @@
+<data name="PlanDataService_DSS" serviceNamespace="" serviceGroup="" transports="http https" disableStreaming="true">
+    <description/>
+    <config id="PlanDataService_DSS">
+        <property name="carbon_datasource_name">Postgres_DS</property>
+    </config>
+     <query id="getUser" useConfig="PlanDataService_DSS">
+        <sql>SELECT id, display_name as name FROM users WHERE id = :user_id AND is_deleted = false</sql>
+        <result element="Users" rowName="User">
+            <element column="id" name="id" xsdType="xs:integer"/>
+            <element column="name" name="name" xsdType="xs:string"/>
+        </result>
+        <param name="user_id" sqlType="BIGINT"/>
+    </query>
+    <resource method="GET" path="/users/{owner_id}">
+        <call-query href="getUser">
+            <with-param name="user_id" query-param="owner_id"/>
+        </call-query>
+    </resource>
+
+    <operation name="getUserOP">
+        <call-query href="getUser">
+            <with-param name="user_id" query-param="owner_id"/>
+        </call-query>
+    </operation>
+    <!---->
+    <query id="createPlanQuery" useConfig="PlanDataService_DSS">
+        <sql>INSERT INTO plans(name, description, uuid,owner_id, color, icon, visibility, 
+                               start_date, end_date, tenant_id, version, created_by,status) 
+            VALUES (:name, :description, gen_random_uuid(), :owner_id, :color, :icon, :visibility, :start_date, 
+                    :end_date, :tenant_id, :version, :created_by,:status) 
+            RETURNING id
+            </sql>
+        <result element="Plans" rowName="Plan">
+          <element column="id" name="id" xsdType="xs:integer"/>
+        </result>
+        <param name="name" sqlType="STRING"/>
+        <param name="description" sqlType="STRING"/>
+        <param name="owner_id" sqlType="BIGINT"/>
+        <param name="color" sqlType="STRING"/>
+        <param name="icon" sqlType="STRING"/>
+        <param name="visibility" sqlType="STRING"/>
+        <param name="start_date" sqlType="DATE"/>
+        <param name="end_date" sqlType="DATE"/>
+        <param name="tenant_id" sqlType="STRING"/>
+        <param name="version" sqlType="INTEGER"/>
+        <param name="created_by" sqlType="BIGINT"/>
+        <param name="status" sqlType="STRING"/>
+    </query>
+    <resource method="POST" path="plans">
+        <call-query href="createPlanQuery">
+            <with-param name="name" query-param="name"/>
+            <with-param name="description" query-param="description"/>
+            <with-param name="owner_id" query-param="owner_id"/>
+            <with-param name="color" query-param="color"/>
+            <with-param name="icon" query-param="icon"/>
+            <with-param name="visibility" query-param="visibility"/>
+            <with-param name="start_date" query-param="start_date"/>
+            <with-param name="end_date" query-param="end_date"/>
+            <with-param name="tenant_id" query-param="tenant_id"/>
+            <with-param name="version" query-param="version"/>
+            <with-param name="created_by" query-param="created_by"/>
+            <with-param name="status" query-param="status"/>
+        </call-query>
+    </resource>
+</data>
