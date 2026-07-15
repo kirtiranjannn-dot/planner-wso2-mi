@@ -383,6 +383,12 @@
     </call-query>
 
 </resource>
+<operation name="getUserByEmailOP">
+     <call-query href="getUserByEmailQuery">
+         <with-param name="email" query-param="email"/>
+     </call-query>
+
+</operation>
 
 
 <!-- =================== put update user =================== -->

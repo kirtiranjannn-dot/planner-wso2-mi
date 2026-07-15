@@ -1,321 +1,184 @@
-<!-- Add XML Data --><api name="planneruat" context="/planneruat" xmlns="http://ws.apache.org/ns/synapse">
+<!-- Add XML Data -->
+<api name="planneruat" context="/planneruat" xmlns="http://ws.apache.org/ns/synapse">
     <!-- ================= Create User (Insert User) ============== -->
-   <resource methods="POST" uri-template="/users">
-
-    <inSequence>
-
-        <!-- ================= JSON Schema Validation ================= -->
-
-        <validate cache-schema="true">
-            <schema key="create-user-schema"/>
-
-            <on-fail>
-
-                <payloadFactory media-type="json">
-                    <format>
-                    {
-                        "success":false,
-                        "message":"Invalid Request"
-                    }
-                    </format>
-                    <args/>
-                </payloadFactory>
-
-                <property name="HTTP_SC"
-                          value="400"
-                          scope="axis2"/>
-
-                <respond/>
-
-            </on-fail>
-
-        </validate>
-
-        <!-- ================= Save Original Request ================= -->
-
-        <enrich>
-            <source clone="true" type="body"/>
-            <target property="originalRequest"
-                    type="property"/>
-        </enrich>
-
-        <!-- ================= Read Username ================= -->
-
-        <property name="username" expression="json-eval($.username)" scope="default" type="STRING"/>
-                
-        <!-- <log level="custom">
+    <resource methods="POST" uri-template="/users">
+        <inSequence>
+            <!-- ================= JSON Schema Validation ================= -->
+            <validate cache-schema="true">
+                <schema key="create-user-schema"/>
+                <on-fail>
+                    <payloadFactory media-type="json">
+                        <format>
+                            {
+                            "success":false,
+                            "message":"Invalid Request"
+                            }
+                        </format>
+                        <args/>
+                    </payloadFactory>
+                    <property name="HTTP_SC" value="400" scope="axis2"/>
+                    <respond/>
+                </on-fail>
+            </validate>
+            <!-- ================= Save Original Request ================= -->
+            <enrich>
+                <source clone="true" type="body"/>
+                <target property="originalRequest" type="property"/>
+            </enrich>
+            <!-- ================= Read Username ================= -->
+            <property name="username" expression="json-eval($.username)" scope="default" type="STRING"/>
+            <!-- <log level="custom">
             <property name="Username_Log" expression="get-property('username')"/>
         </log>
         <property name="uri.var.fullURL"
           expression="fn:concat(
               'http://localhost:8290/services/UserDataService_DSS/getUserByUsername?username=',get-property('username'))"/> -->
-
-        <payloadFactory media-type="xml">
-            <format>
-                <getUserByUsernameOP>
-                    <username>$1</username>
-                </getUserByUsernameOP>
-            </format>
-            <args>
-                <arg evaluator="xml" expression="get-property('username')"/>
-            </args>
-        </payloadFactory>
-
-        <log level="custom">
-            <property expression="$body" name="!!! before hitting getUserByUsername !!!" xmlns:ns="http://org.apache.synapse/xsd" />
-        </log>
-
-
-        <!-- ================= Check Username ================= -->
-        <!-- <property action="remove" name="NO_ENTITY_BODY" scope="axis2" />
-        <property name="HTTP_METHOD" value="GET"  scope="axis2"/>
-         
-        <log level="custom">
-            <property name="Username_Log" expression="get-property('username')"/>
-            <property name="uri.var.fullURL" expression="get-property('uri.var.fullURL')"/>
-        </log>
-        <call>
-            <endpoint>
-             <http method="GET" uri-template="{uri.var.fullURL}"/>
-            </endpoint>
-        </call>
-        <log level="full"/> -->
-
-
-        <property name="SOAPAction" scope="transport" type="STRING" value="urn:getUserByUsernameOP" />
-        <call>
-            <endpoint key="Get_User_By_Username_EP" />
-        </call>
-
-
-        <log level="custom">
-            <property name="After Get_User_By_Username_EP" value="Get_User_By_Username_EP"/>
-            <property name="Get_User_By_Username_DB_SC" expression="get-property('axis2','HTTP_SC')"/>
-            <property name="Get_User_By_Username_EP_Res" expression="json-eval($)" />
-        </log>
-
-        <!-- ================= Username Exists ================= -->
-
-        <property name="userDetails_Result" expression="json-eval($.User.UserDetails)" scope="default" type="STRING"/>
-
-        <filter xpath="get-property('userDetails_Result') != '' ">
-            <then>
-                <payloadFactory media-type="json">
-
-                    <format>
-                    {
-                      "success":false,
-                      "message":"Username already exists"
-                    }
-                    </format>
-
-                    <args/>
-
-                </payloadFactory>
-
-                <property name="HTTP_SC"
-                          value="409"
-                          scope="axis2"/>
-
-                <respond/>
-
-            </then>
-            <else />
-        </filter>
-
-        <!-- ================= Restore Request ================= -->
-
-        <!-- <enrich>
-
-            <source property="originalRequest"
-                    type="property"/>
-
-            <target type="body"/>
-
-        </enrich> -->
-
-        <!-- ================= Read Email ================= -->
-<!-- 
-        <property name="uri.var.email"
-                  expression="json-eval($.email)"/>
-        <log level="full"/> -->
-
-        <!-- ================= Check Email ================= -->
-
-        <!-- <call>
-
-              <endpoint>
-                 <http method="GET"
-              uri-template="http://localhost:8290/services/UserDataService_DSS/getUserByEmail?email={uri.var.email}"/>
-              </endpoint>
-        </call>
-         <log level="full"/> -->
-        <!-- ================= Email Exists ================= -->
-
-        <!-- <filter xpath="count(//UserDetails) > 0">
-
-            <then>
-
-                <payloadFactory media-type="json">
-
-                    <format>
-                    {
-                      "success":false,
-                      "message":"Email already exists"
-                    }
-                    </format>
-
-                    <args/>
-
-                </payloadFactory>
-
-                <property name="HTTP_SC"
-                          value="409"
-                          scope="axis2"/>
-
-                <respond/>
-
-            </then>
-
-        </filter> -->
-
-        <!-- ================= Restore Original Request ================= -->
-
-        <!-- <enrich>
-
-            <source property="originalRequest"
-                    type="property"/>
-
-            <target type="body"/>
-
-        </enrich> -->
-
-        <!-- ================= Convert to DSS Payload ================= -->
-
-        <!-- <payloadFactory media-type="json">
-
-            <format>
-            {
-              "_postcreateUser":{
-
-                "username":"$1",
-
-                "email":"$2",
-
-                "first_name":"$3",
-
-                "last_name":"$4",
-
-                "display_name":"$5",
-
-                "profile_image":"$6",
-
-                "tenant_id":"$7",
-
-                "version":$8,
-
-                "created_by":$9
-
-              }
-            }
-            </format>
-
-            <args>
-
-                <arg evaluator="json"
-                     expression="$.username"/>
-
-                <arg evaluator="json"
-                     expression="$.email"/>
-
-                <arg evaluator="json"
-                     expression="$.first_name"/>
-
-                <arg evaluator="json"
-                     expression="$.last_name"/>
-
-                <arg evaluator="json"
-                     expression="$.display_name"/>
-
-                <arg evaluator="json"
-                     expression="$.profile_image"/>
-
-                <arg evaluator="json"
-                     expression="$.tenant_id"/>
-
-                <arg evaluator="json"
-                     expression="$.version"/>
-
-                <arg evaluator="json"
-                     expression="$.created_by"/>
-
-            </args>
-
-        </payloadFactory> -->
-
-        <!-- ================= Create User ================= -->
-
-        <!-- <call>
-
-            <endpoint>
-             <http method="POST"
-              uri-template="http://localhost:8290/services/UserDataService_DSS/createUser"/>
-            </endpoint>
-
-        </call> -->
-<!-- 
-        <payloadFactory media-type="json">
-
-            <format>
-
-            {
-              "success":true,
-              "message":"User created successfully"
-            }
-
-            </format>
-
-            <args/>
-
-        </payloadFactory> -->
-
-        <!-- <property name="HTTP_SC"
-                  value="201"
-                  scope="axis2"/>    -->
+            <payloadFactory media-type="xml">
+                <format>
+                    <getUserByUsernameOP>
+                        <username>$1</username>
+                    </getUserByUsernameOP>
+                </format>
+                <args>
+                    <arg evaluator="xml" expression="get-property('username')"/>
+                </args>
+            </payloadFactory>
+            <log level="custom">
+                <property expression="$body" name="!!! before hitting getUserByUsername !!!" xmlns:ns="http://org.apache.synapse/xsd"/>
+            </log>
+            <!-- ================= Check Username ================= -->
+            <property name="SOAPAction" scope="transport" type="STRING" value="urn:getUserByUsernameOP"/>
+            <call>
+                <endpoint key="Get_User_By_Username_EP"/>
+            </call>
+            <log level="custom">
+                <property name="After Get_User_By_Username_EP" value="Get_User_By_Username_EP"/>
+                <property name="Get_User_By_Username_DB_SC" expression="get-property('axis2','HTTP_SC')"/>
+                <property name="Get_User_By_Username_EP_Res" expression="json-eval($)"/>
+            </log>
+            <!-- ================= Username Exists ================= -->
+            <property name="userDetails_Result" expression="json-eval($.User.UserDetails)" scope="default" type="STRING"/>
+            <filter xpath="get-property('userDetails_Result') != '' ">
+                <then>
+                    <payloadFactory media-type="json">
+                        <format>
+                            {
+                            "success":false,
+                            "message":"Username already exists"
+                            }
+                        </format>
+                        <args/>
+                    </payloadFactory>
+                    <property name="HTTP_SC" value="409" scope="axis2"/>
+                    <respond/>
+                </then>
+                <else>
+                    <!-- ================= Restore Request ================= -->
+                    <enrich>
+                        <source property="originalRequest" type="property"/>
+                        <target type="body"/>
+                    </enrich>
+                    <!-- ================= Read Email ================= -->
+                     <property name="email" expression="json-eval($.email)" scope="default" type="STRING"/>
+                      <payloadFactory media-type="xml">
+                <format>
+                    <getUserByEmailOP>
+                        <email>$1</email>
+                    </getUserByEmailOP>
+                </format>
+                <args>
+                    <arg evaluator="xml" expression="get-property('email')"/>
+                </args>
+            </payloadFactory>
+            <log level="custom">
+                <property expression="$body" name="!!! before hitting getUserByEmailOP !!!" xmlns:ns="http://org.apache.synapse/xsd"/>
+            </log>
+            <!-- ================= Check Email ================= -->
+            <property name="SOAPAction" scope="transport" type="STRING" value="urn:getUserByEmailOP"/>
+            <call>
+                <endpoint key="Get_User_By_Email_EP"/>
+            </call>
+            <log level="custom">
+                <property name="After Get_User_By_Email_EP" value="Get_User_By_Email_EP"/>
+                <property name="Get_User_By_Email_DB_SC" expression="get-property('axis2','HTTP_SC')"/>
+                <property name="Get_User_By_Email_EP_Res" expression="json-eval($)"/>
+            </log>
+            <!-- ================= Email Exists ================= -->
+            <property name="userDetails_Result" expression="json-eval($.User.UserDetails)" scope="default" type="STRING"/>
+            <filter xpath="get-property('userDetails_Result') != '' ">
+                <then>
+                    <payloadFactory media-type="json">
+                        <format>
+                            {
+                            "success":false,
+                            "message":"Email already exists"
+                            }
+                        </format>
+                        <args/>
+                    </payloadFactory>
+                    <property name="HTTP_SC" value="409" scope="axis2"/>
+                    <respond/>
+                </then>
+                <else>
+                    <enrich>
+                        <source property="originalRequest" type="property"/>
+                        <target type="body"/>
+                    </enrich>
+                    <payloadFactory media-type="json">
+                <format>
+                {
+                  "_postcreateUser":{
+                    "username":"$1",
+                    "email":"$2",
+                    "first_name":"$3",
+                    "last_name":"$4",
+                    "display_name":"$5",
+                    "profile_image":"$6",
+                    "tenant_id":"$7",
+                    "version":$8,
+                    "created_by":$9
+                  }
+                }
+                </format>
+
+                <args>
+                    <arg evaluator="json" expression="$.username"/>
+                    <arg evaluator="json" expression="$.email"/>
+                    <arg evaluator="json" expression="$.first_name"/>
+                    <arg evaluator="json" expression="$.last_name"/>
+                    <arg evaluator="json" expression="$.display_name"/>
+                    <arg evaluator="json" expression="$.profile_image"/>
+                    <arg evaluator="json" expression="$.tenant_id"/>
+                    <arg evaluator="json" expression="$.version"/>
+                    <arg evaluator="json" expression="$.created_by"/>
+                </args>
+            </payloadFactory>
+
+            <log level="full"/>
+
+
+            <call>
+                <endpoint>
+                    <http method="POST"
+                        uri-template="http://localhost:8290/services/UserDataService_DSS/createUser"/>
+                </endpoint>
+            </call>
+
+            <respond/>
+                </else>
+
+            </filter>
+                    
+                </else>
+            </filter>
+        </inSequence>
+    </resource>
+                    
+                    
+    
+            
         
-        <respond/> 
-
-    </inSequence>
-
-    <faultSequence>
-
-        <log level="full"/>
-
-        <payloadFactory media-type="json">
-
-            <format>
-
-            {
-              "success":false,
-              "message":"Internal Server Error"
-            }
-
-            </format>
-
-            <args/>
-
-        </payloadFactory>
-
-        <property name="HTTP_SC"
-                  value="500"
-                  scope="axis2"/>
-
-        <respond/>
-
-    </faultSequence>
-
-</resource>
-    <!-- =========================== Get Users ========================== -->
+        <!-- =========================== Get Users ========================== -->
     <resource methods="GET" uri-template="/users">
         <inSequence>
             <call>
