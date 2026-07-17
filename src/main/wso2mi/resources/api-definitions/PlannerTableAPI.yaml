@@ -1,0 +1,22 @@
+openapi: 3.0.1
+info:
+  title: ValidateUserApi
+  description: API Definition of PlannerTableAPI
+  version: 1.0.0
+servers:
+- url: http://localhost:8290/ValidateUser
+- url: https://localhost:8253/ValidateUser
+paths:
+  /{id}:
+    get:
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        default:
+          description: Default response

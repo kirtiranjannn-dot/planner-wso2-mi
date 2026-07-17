@@ -1,0 +1,10 @@
+---
+key: "PlannerTableAPI-1.0.0"
+name : "PlannerTableAPI"
+displayName : "PlannerTableAPI"
+description: "PlannerTableAPI"
+version: "1.0.0"
+serviceUrl: "https://{MI_HOST}:{MI_PORT}/PlannerTable"
+definitionType: "OAS3"
+securityType: "BASIC"
+mutualSSLEnabled: false

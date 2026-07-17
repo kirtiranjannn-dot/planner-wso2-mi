@@ -1,0 +1,38 @@
+<data name="PlanMembersDataService_DSS" serviceNamespace="" serviceGroup="" transports="http https" disableStreaming="true">
+    <description/>
+
+    <config id="PlanMemberDataService_DSS">
+        <property name="carbon_datasource_name">Postgres_DS</property>
+    </config>
+
+    <!--================= Create Plan Memebers Table=========================-->
+      <query id="insertPlanMemberQuery" useConfig="PlanMemberDataService_DSS">
+
+          <sql>
+              INSERT INTO plan_members
+              (
+                  plan_id,
+                  user_id,
+                  role
+              )
+              VALUES
+              (
+                  :plan_id,
+                  :user_id,
+                  :role
+              );
+          </sql>
+
+          <param name="plan_id" sqlType="BIGINT"/>
+          <param name="user_id" sqlType="BIGINT"/>
+          <param name="role" sqlType="STRING"/>
+      </query>
+
+      <resource method="POST" path="planMembers">
+          <call-query href="insertPlanMemberQuery">
+              <with-param name="plan_id" query-param="plan_id"/>
+              <with-param name="user_id" query-param="user_id"/>
+              <with-param name="role" query-param="role"/>
+          </call-query>
+      </resource>
+</data>

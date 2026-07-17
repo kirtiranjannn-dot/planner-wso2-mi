@@ -1,0 +1,447 @@
+<data name="PlanDataService_DSS" serviceNamespace="" serviceGroup="" transports="http https" disableStreaming="true">
+    <description/>
+    <config id="PlanDataService_DSS">
+        <property name="carbon_datasource_name">Postgres_DS</property>
+    </config>
+    <!-- ================= Validate User ============== -->
+    <query id="getUser" useConfig="PlanDataService_DSS">
+        <sql>SELECT id, display_name as name FROM users WHERE id = :user_id AND is_deleted = false</sql>
+        <result element="Users" rowName="User">
+            <element column="id" name="id"/>
+            <element column="name" name="name" xsdType="xs:string"/>
+        </result>
+        <param name="user_id" sqlType="BIGINT"/>
+    </query>
+    <resource method="GET" path="/users">
+        <call-query href="getUser">
+            <with-param name="user_id" query-param="owner_id"/>
+        </call-query>
+    </resource>
+    <operation name="getUserOP">
+        <call-query href="getUser">
+            <with-param name="user_id" query-param="owner_id"/>
+        </call-query>
+    </operation>
+    <!-- ================= Create Plan(Insert User) ============== -->
+    <query id="createPlanQuery" useConfig="PlanDataService_DSS">
+        <sql>INSERT INTO plans(name, description, uuid,owner_id, color, icon, visibility,
+            start_date, end_date, tenant_id, version, created_by,status)
+            VALUES (:name, :description, gen_random_uuid(), :owner_id, :color, :icon, :visibility, :start_date,
+            :end_date, :tenant_id, :version, :created_by,:status)
+            RETURNING id,owner_id;
+        </sql>
+        <result element="Plans" rowName="Plan">
+            <element column="id" name="id"/>
+            <element column="owner_id" name="owner_id"/>
+        </result>
+        <param name="name" sqlType="STRING"/>
+        <param name="description" sqlType="STRING"/>
+        <param name="owner_id" sqlType="BIGINT"/>
+        <param name="color" sqlType="STRING"/>
+        <param name="icon" sqlType="STRING"/>
+        <param name="visibility" sqlType="STRING"/>
+        <param name="start_date" sqlType="DATE"/>
+        <param name="end_date" sqlType="DATE"/>
+        <param name="tenant_id" sqlType="STRING"/>
+        <param name="version" sqlType="INTEGER"/>
+        <param name="created_by" sqlType="BIGINT"/>
+        <param name="status" sqlType="STRING"/>
+    </query>
+    <resource method="POST" path="plans">
+        <call-query href="createPlanQuery">
+            <with-param name="name" query-param="name"/>
+            <with-param name="description" query-param="description"/>
+            <with-param name="owner_id" query-param="owner_id"/>
+            <with-param name="color" query-param="color"/>
+            <with-param name="icon" query-param="icon"/>
+            <with-param name="visibility" query-param="visibility"/>
+            <with-param name="start_date" query-param="start_date"/>
+            <with-param name="end_date" query-param="end_date"/>
+            <with-param name="tenant_id" query-param="tenant_id"/>
+            <with-param name="version" query-param="version"/>
+            <with-param name="created_by" query-param="created_by"/>
+            <with-param name="status" query-param="status"/>
+        </call-query>
+    </resource>
+    <!-- ================= Get Plan By UUID ============== -->
+    <query id="getPlanByUuid" useConfig="PlanDataService_DSS">
+        <sql>
+            SELECT id, uuid, name, description, owner_id, color, icon, visibility,
+            start_date, end_date, tenant_id, version, created_by, status
+            FROM plans
+            WHERE uuid = :uuid AND is_deleted = false
+        </sql>
+        <result element="Plans" rowName="Plan">
+            <element column="id" name="id"/>
+            <element column="uuid" name="uuid"/>
+            <element column="name" name="name"/>
+            <element column="description" name="description"/>
+            <element column="owner_id" name="owner_id"/>
+            <element column="color" name="color"/>
+            <element column="icon" name="icon"/>
+            <element column="visibility" name="visibility"/>
+            <element column="start_date" name="start_date"/>
+            <element column="end_date" name="end_date"/>
+            <element column="tenant_id" name="tenant_id"/>
+            <element column="version" name="version"/>
+            <element column="created_by" name="created_by"/>
+            <element column="status" name="status"/>
+        </result>
+        <param name="uuid" sqlType="STRING"/>
+    </query>
+    <resource method="GET" path="getUserByUUID">
+        <call-query href="getPlanByUuid">
+            <with-param name="uuid" query-param="uuid"/>
+        </call-query>
+    </resource>
+    <!-- ================= Get Plan By ID ============== -->
+    <query id="getPlanByid" useConfig="PlanDataService_DSS">
+        <sql>
+            SELECT id, uuid, name, description, owner_id, color, icon, visibility,
+            start_date, end_date, tenant_id, version, created_by, status
+            FROM plans
+            WHERE id = :id AND is_deleted = false
+        </sql>
+        <result element="Plans" rowName="Plan">
+            <element column="id" name="id"/>
+            <element column="uuid" name="uuid"/>
+            <element column="name" name="name"/>
+            <element column="description" name="description"/>
+            <element column="owner_id" name="owner_id"/>
+            <element column="color" name="color"/>
+            <element column="icon" name="icon"/>
+            <element column="visibility" name="visibility"/>
+            <element column="start_date" name="start_date"/>
+            <element column="end_date" name="end_date"/>
+            <element column="tenant_id" name="tenant_id"/>
+            <element column="version" name="version"/>
+            <element column="created_by" name="created_by"/>
+            <element column="status" name="status"/>
+        </result>
+        <param name="id" sqlType="INTEGER"/>
+    </query>
+    <resource method="GET" path="GetPlanById">
+        <call-query href="getPlanByid">
+            <with-param name="id" query-param="id"/>
+        </call-query>
+    </resource>
+    <!-- ================= Get Plan By Created ID ============== -->
+    <query id="getPlanByCreatedid" useConfig="PlanDataService_DSS">
+        <sql>
+            SELECT id, uuid, name, description, owner_id, color, icon, visibility,
+            start_date, end_date, tenant_id, version, created_by, status
+            FROM plans
+            WHERE created_by = :created_by AND is_deleted = false
+        </sql>
+        <result element="Plans" rowName="Plan">
+            <element column="id" name="id"/>
+            <element column="uuid" name="uuid"/>
+            <element column="name" name="name"/>
+            <element column="description" name="description"/>
+            <element column="owner_id" name="owner_id"/>
+            <element column="color" name="color"/>
+            <element column="icon" name="icon"/>
+            <element column="visibility" name="visibility"/>
+            <element column="start_date" name="start_date"/>
+            <element column="end_date" name="end_date"/>
+            <element column="tenant_id" name="tenant_id"/>
+            <element column="version" name="version"/>
+            <element column="created_by" name="created_by"/>
+            <element column="status" name="status"/>
+        </result>
+        <param name="created_by" sqlType="INTEGER"/>
+    </query>
+    <resource method="GET" path="GetPlanCreatedBy">
+        <call-query href="getPlanByCreatedid">
+            <with-param name="created_by" query-param="created_by"/>
+        </call-query>
+    </resource>
+    <!-- ================= Get All Plans  ============== -->
+    <query id="getAllPlansQuery" useConfig="PlanDataService_DSS">
+        <sql>
+            SELECT
+            id,
+            uuid,
+            name,
+            description,
+            owner_id,
+            color,
+            icon,
+            visibility,
+            status,
+            start_date,
+            end_date,
+            tenant_id,
+            version,
+            created_by,
+            created_at,
+            updated_by,
+            updated_at
+            FROM plans
+            WHERE is_deleted=false
+            ORDER BY id;
+        </sql>
+        <result element="Plans" rowName="Plan">
+            <element column="id" name="id"/>
+            <element column="uuid" name="uuid"/>
+            <element column="name" name="name"/>
+            <element column="description" name="description"/>
+            <element column="owner_id" name="owner_id"/>
+            <element column="color" name="color"/>
+            <element column="icon" name="icon"/>
+            <element column="visibility" name="visibility"/>
+            <element column="status" name="status"/>
+            <element column="start_date" name="start_date"/>
+            <element column="end_date" name="end_date"/>
+            <element column="tenant_id" name="tenant_id"/>
+            <element column="version" name="version"/>
+            <element column="created_by" name="created_by"/>
+            <element column="created_at" name="created_at"/>
+            <element column="updated_by" name="updated_by"/>
+            <element column="updated_at" name="updated_at"/>
+        </result>
+    </query>
+    <resource method="GET" path="getAllPlans">
+        <call-query href="getAllPlansQuery"/>
+    </resource>
+    <!-- ================= Get All Plans By Status Active  =========================== -->
+    <query id="getPlanByActiveStatus" useConfig="PlanDataService_DSS">
+        <sql>
+            SELECT id, uuid, name, description, owner_id, color, icon, visibility,
+            start_date, end_date, tenant_id, version, created_by, status
+            FROM plans
+            WHERE status = :status AND is_deleted = false
+        </sql>
+        <result element="Plans" rowName="Plan">
+            <element column="id" name="id"/>
+            <element column="uuid" name="uuid"/>
+            <element column="name" name="name"/>
+            <element column="description" name="description"/>
+            <element column="owner_id" name="owner_id"/>
+            <element column="color" name="color"/>
+            <element column="icon" name="icon"/>
+            <element column="visibility" name="visibility"/>
+            <element column="start_date" name="start_date"/>
+            <element column="end_date" name="end_date"/>
+            <element column="tenant_id" name="tenant_id"/>
+            <element column="version" name="version"/>
+            <element column="created_by" name="created_by"/>
+            <element column="status" name="status"/>
+        </result>
+        <param name="status" sqlType="STRING"/>
+    </query>
+    <resource method="GET" path="GetPlanByStatusActive">
+        <call-query href="getPlanByActiveStatus">
+            <with-param name="status" query-param="status"/>
+        </call-query>
+    </resource>
+    <!-- ================= Get All Plans Based on deleted status =========================== -->
+    <query id="getPlanByDeletedFalse" useConfig="PlanDataService_DSS">
+        <sql>
+            SELECT id, uuid, name, description, owner_id, color, icon, visibility,
+            start_date, end_date, tenant_id, version, created_by, status ,is_deleted
+            FROM plans
+            WHERE is_deleted = false
+        </sql>
+        <result element="Plans" rowName="Plan">
+            <element column="id" name="id"/>
+            <element column="uuid" name="uuid"/>
+            <element column="name" name="name"/>
+            <element column="description" name="description"/>
+            <element column="owner_id" name="owner_id"/>
+            <element column="color" name="color"/>
+            <element column="icon" name="icon"/>
+            <element column="visibility" name="visibility"/>
+            <element column="start_date" name="start_date"/>
+            <element column="end_date" name="end_date"/>
+            <element column="tenant_id" name="tenant_id"/>
+            <element column="version" name="version"/>
+            <element column="created_by" name="created_by"/>
+            <element column="status" name="status"/>
+            <element column="is_deleted" name="is_deleted"/>
+        </result>
+    </query>
+    <resource method="GET" path="GetPlanByDeleteFalse">
+        <call-query href="getPlanByDeletedFalse">
+        </call-query>
+    </resource>
+    <!-- ================= Get All Plans Based on deleted status True =========================== -->
+    <query id="getPlanByDeletedTrue" useConfig="PlanDataService_DSS">
+        <sql>
+            SELECT id, uuid, name, description, owner_id, color, icon, visibility,
+            start_date, end_date, tenant_id, version, created_by, status ,is_deleted
+            FROM plans
+            WHERE is_deleted = true
+        </sql>
+        <result element="Plans" rowName="Plan">
+            <element column="id" name="id"/>
+            <element column="uuid" name="uuid"/>
+            <element column="name" name="name"/>
+            <element column="description" name="description"/>
+            <element column="owner_id" name="owner_id"/>
+            <element column="color" name="color"/>
+            <element column="icon" name="icon"/>
+            <element column="visibility" name="visibility"/>
+            <element column="start_date" name="start_date"/>
+            <element column="end_date" name="end_date"/>
+            <element column="tenant_id" name="tenant_id"/>
+            <element column="version" name="version"/>
+            <element column="created_by" name="created_by"/>
+            <element column="status" name="status"/>
+            <element column="is_deleted" name="is_deleted"/>
+        </result>
+    </query>
+    <resource method="GET" path="GetPlanByDeleteTrue">
+        <call-query href="getPlanByDeletedTrue">
+        </call-query>
+    </resource>
+    <!-- =================== put updated Plan =================== -->
+    <query id="updatePlanQuery" useConfig="PlanDataService_DSS">
+        <sql>
+            UPDATE plans
+            SET
+            name = :name,
+            description = :description,
+            owner_id = :owner_id,
+            color = :color,
+            icon = :icon,
+            visibility = :visibility,
+            status = :status,
+            start_date = :start_date,
+            end_date = :end_date,
+            tenant_id = :tenant_id,
+            version = version + 1,
+            updated_by = :updated_by,
+            updated_at = CURRENT_TIMESTAMP
+            WHERE id = :id
+            AND is_deleted = FALSE
+            RETURNING
+            id,
+            uuid,
+            name,
+            description,
+            owner_id,
+            color,
+            icon,
+            visibility,
+            status,
+            start_date,
+            end_date,
+            tenant_id,
+            version,
+            created_by,
+            created_at,
+            updated_by,
+            updated_at;
+        </sql>
+        <result element="Plan" rowName="PlanDetails">
+            <element column="id" name="id"/>
+            <element column="uuid" name="uuid"/>
+            <element column="name" name="name"/>
+            <element column="description" name="description"/>
+            <element column="owner_id" name="owner_id"/>
+            <element column="color" name="color"/>
+            <element column="icon" name="icon"/>
+            <element column="visibility" name="visibility"/>
+            <element column="status" name="status"/>
+            <element column="start_date" name="start_date"/>
+            <element column="end_date" name="end_date"/>
+            <element column="tenant_id" name="tenant_id"/>
+            <element column="version" name="version"/>
+            <element column="created_by" name="created_by"/>
+            <element column="created_at" name="created_at"/>
+            <element column="updated_by" name="updated_by"/>
+            <element column="updated_at" name="updated_at"/>
+        </result>
+        <param name="id" sqlType="BIGINT"/>
+        <param name="name" sqlType="STRING"/>
+        <param name="description" sqlType="STRING"/>
+        <param name="owner_id" sqlType="BIGINT"/>
+        <param name="color" sqlType="STRING"/>
+        <param name="icon" sqlType="STRING"/>
+        <param name="visibility" sqlType="STRING"/>
+        <param name="status" sqlType="STRING"/>
+        <param name="start_date" sqlType="DATE"/>
+        <param name="end_date" sqlType="DATE"/>
+        <param name="tenant_id" sqlType="STRING"/>
+        <param name="version" sqlType="BIGINT"/>
+        <param name="updated_by" sqlType="BIGINT"/>
+    </query>
+    <resource method="PUT" path="updatePlan">
+        <call-query href="updatePlanQuery">
+            <with-param name="id" query-param="id"/>
+            <with-param name="name" query-param="name"/>
+            <with-param name="description" query-param="description"/>
+            <with-param name="owner_id" query-param="owner_id"/>
+            <with-param name="color" query-param="color"/>
+            <with-param name="icon" query-param="icon"/>
+            <with-param name="visibility" query-param="visibility"/>
+            <with-param name="status" query-param="status"/>
+            <with-param name="start_date" query-param="start_date"/>
+            <with-param name="end_date" query-param="end_date"/>
+            <with-param name="tenant_id" query-param="tenant_id"/>
+            <with-param name="version" query-param="version"/>
+            <with-param name="updated_by" query-param="updated_by"/>
+        </call-query>
+    </resource>
+    <!-- ====================== Put Plan Activate ================== -->
+    <query id="activatePlanQuery" useConfig="PlanDataService_DSS">
+        <sql>
+            UPDATE plans
+            SET
+            status = 'ACTIVE',
+            updated_by = :updated_by,
+            updated_at = CURRENT_TIMESTAMP
+            WHERE id = :id
+            AND is_deleted = FALSE;
+        </sql>
+        <param name="id" sqlType="BIGINT"/>
+        <param name="updated_by" sqlType="BIGINT"/>
+    </query>
+    <resource method="PUT" path="activatePlan">
+        <call-query href="activatePlanQuery">
+            <with-param name="id" query-param="id"/>
+            <with-param name="updated_by" query-param="updated_by"/>
+        </call-query>
+    </resource>
+    <!-- ========================== put Plan deactivate ======================== -->
+    <query id="archivePlanQuery" useConfig="PlanDataService_DSS">
+        <sql>
+            UPDATE plans
+            SET
+            status = 'ARCHIVED',
+            updated_by = :updated_by,
+            updated_at = CURRENT_TIMESTAMP
+            WHERE id = :id
+            AND is_deleted = FALSE;
+        </sql>
+        <param name="id" sqlType="BIGINT"/>
+        <param name="updated_by" sqlType="BIGINT"/>
+    </query>
+    <resource method="PUT" path="archivePlan">
+        <call-query href="archivePlanQuery">
+            <with-param name="id" query-param="id"/>
+            <with-param name="updated_by" query-param="updated_by"/>
+        </call-query>
+    </resource>
+    <!-- ======================== soft delete plan ====================== -->
+    <query id="deletePlanQuery" useConfig="PlanDataService_DSS">
+        <sql>
+            UPDATE plans
+            SET
+            is_deleted = TRUE,
+            deleted_by = :deleted_by,
+            deleted_at = CURRENT_TIMESTAMP
+            WHERE id = :id
+            AND is_deleted = FALSE;
+        </sql>
+        <param name="id" sqlType="BIGINT"/>
+        <param name="deleted_by" sqlType="BIGINT"/>
+    </query>
+    <resource method="DELETE" path="deletePlan">
+        <call-query href="deletePlanQuery">
+            <with-param name="id" query-param="id"/>
+            <with-param name="deleted_by" query-param="deleted_by"/>
+        </call-query>
+    </resource>
+</data>
