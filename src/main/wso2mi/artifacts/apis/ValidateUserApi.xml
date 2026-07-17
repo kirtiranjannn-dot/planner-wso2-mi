@@ -2,13 +2,11 @@
 <api context="/ValidateUser" name="ValidateUserApi" xmlns="http://ws.apache.org/ns/synapse">
     <resource methods="POST" uri-template="/Plans">
         <inSequence>
-            
             <enrich>
-                <source clone="true" type="body" />
+                <source clone="true" type="body"/>
                 <target property="originalRequest" type="property"/>
             </enrich>
             <!-- LOG ENTIRE INCOMING REQUEST -->
-
             <property name="user_id" expression="json-eval($.owner_id)" scope="default" type="STRING"/>
             <payloadFactory media-type="xml">
                 <format>
@@ -19,26 +17,19 @@
                 <args>
                     <arg evaluator="xml" expression="get-property('user_id')"/>
                 </args>
-            </payloadFactory>  
-            
-                      
+            </payloadFactory>
             <log level="custom">
                 <property name="STEP" value="VALIDATING USER"/>
                 <property name="USER_ID" expression="get-property('user_id')"/>
             </log>
-            
             <!-- CALL DATA SOURCE TO CHECK USER -->
-
             <property name="SOAPAction" scope="transport" type="STRING" value="urn:getUserOP"/>
             <call>
                 <endpoint key="Get_user_EP"/>
             </call>
-            
-            <!-- LOG ENTIRE RESPONSE FROM DATA SOURCE -->
             <log level="full">
                 <property name="DATA SOURCE VALIDATE RESPONSE" value="RECEIVED"/>
             </log>
-            
             <!-- CHECK IF USER FOUND -->
             <filter xpath="count(//*[local-name()='id']) = 1">
                 <then>
@@ -46,24 +37,23 @@
                         <source property="originalRequest" type="property"/>
                         <target type="body"/>
                     </enrich>
-                    
                     <payloadFactory media-type="json">
                         <format>
                             {
-                                    "_postplans": {
-                                        "name": "$1",
-                                        "description": "$2",
-                                        "owner_id": $3,
-                                        "icon": "$4",
-                                        "visibility": "$5",
-                                        "start_date": "$6",
-                                        "end_date": "$7",
-                                        "tenant_id": "$8",
-                                        "version": $9,
-                                        "created_by": $10,
-                                        "color":"$11"
-                                        "status":"$12"
-                                    }
+                            "_postplans": {
+                            "name": "$1",
+                            "description": "$2",
+                            "owner_id": $3,
+                            "icon": "$4",
+                            "visibility": "$5",
+                            "start_date": "$6",
+                            "end_date": "$7",
+                            "tenant_id": "$8",
+                            "version": $9,
+                            "created_by": $10,
+                            "color":"$11",
+                            "status":"$12"
+                            }
                             }
                         </format>
                         <args>
@@ -79,67 +69,389 @@
                             <arg evaluator="json" expression="$.created_by"/>
                             <arg evaluator="json" expression="$.color"/>
                             <arg evaluator="json" expression="$.status"/>
-
                         </args>
-
                     </payloadFactory>
-
                     <call>
                         <endpoint>
-                            <http method="POST"
-                                uri-template="http://localhost:8290/services/PlanDataService_DSS/plans"/>
+                            <http method="POST" uri-template="http://localhost:8290/services/PlanDataService_DSS/plans"/>
                         </endpoint>
                     </call>
-                    <respond/>
-                </then>
-
-                <else>
-
-                    <property name="messageType" value="application/json" scope="axis2"/>
-
+                     <enrich>
+                         <source clone="true" type="body"/>
+                         <target property="originalResponse"  type="property"/>
+                    </enrich>
                     <payloadFactory media-type="json">
                         <format>
                             {
-                                "status": "FAILURE", 
-                                "error": "USER_NOT_FOUND", 
-                                "message": "User id $1 does not exist"
+                            "_postplanMemebers":{
+                                                 "plan_id":$1,
+                                                 "user_id":$2,
+                                                 "role": "OWNER"
+                                                }
+                            }
+                        </format>
+                         <args>
+                            <arg evaluator="json" expression="$.Plans.Plan[0].id"/>
+                            <arg evaluator="json" expression="$.Plans.Plan[0].owner_id"/>
+                            <arg evaluator="json" expression="$.role"/>
+                         </args>
+                    </payloadFactory>
+                    <log level="full"/>
+                     <call>
+                        <endpoint>
+                            <http method="POST" uri-template="http://localhost:8290/services/PlanMembersDataService_DSS/planMembers"/>
+                        </endpoint>
+                    </call>
+                     <log level="full"/>
+                    <respond/>
+                </then>
+                <else>
+                    <property name="messageType" value="application/json" scope="axis2"/>
+                    <payloadFactory media-type="json">
+                        <format>
+                            {
+                            "status": "FAILURE",
+                            "error": "USER_NOT_FOUND",
+                            "message": "User id $1 does not exist"
                             }
                         </format>
                         <args>
                             <arg evaluator="xml" expression="get-property('user_id')"/>
                         </args>
                     </payloadFactory>
-                    
-                 
                     <log level="custom">
                         <property name="FINAL RESPONSE" value="404 NOT FOUND"/>
                     </log>
-                    
                     <property name="HTTP_SC" value="404" scope="axis2"/>
-
                     <respond/>
                 </else>
-
             </filter>
-
-
         </inSequence>
-
         <faultSequence>
             <log level="full">
                 <property name="FAULT" value="ERROR OCCURRED"/>
             </log>
-
             <property name="messageType" value="application/json" scope="axis2"/>
-
             <payloadFactory media-type="json">
                 <format>
-                        {"status": "ERROR", "message": "DB Connection or DS Error"}
+                    {"status": "ERROR", "message": "DB Connection or DS Error"}
                 </format>
             </payloadFactory>
-
             <property name="HTTP_SC" value="500" scope="axis2"/>
-
+            <respond/>
+        </faultSequence>
+    </resource>
+    <!-- =================  Get Plan By uuid ================= -->
+    <resource methods="GET" uri-template="/plans/uuid/{uuid}">
+        <inSequence>
+            <call>
+                <endpoint>
+                    <http method="GET" uri-template="http://localhost:8290/services/PlanDataService_DSS/getUserByUUID?uuid={uri.var.uuid}"/>
+                </endpoint>
+            </call>
+            <log level="custom">
+                <property expression="$body" name="!!! afer hitting db" xmlns:ns="http://org.apache.synapse/xsd"/>
+            </log>
+            <property name="messageType" scope="axis2" type="STRING" value="application/json"/>
+            <property name="ContentType" scope="axis2" type="STRING" value="application/json"/>
+            <respond/>
+        </inSequence>
+        <faultSequence>
+            <log level="full"/>
+            <respond/>
+        </faultSequence>
+    </resource>
+    <!-- =================  Get Plan By id ================= -->
+    <resource methods="GET" uri-template="/plans/id/{id}">
+        <inSequence>
+            <call>
+                <endpoint>
+                    <http method="GET" uri-template="http://localhost:8290/services/PlanDataService_DSS/GetPlanById?id={uri.var.id}"/>
+                </endpoint>
+            </call>
+            <log level="custom">
+                <property expression="$body" name="!!! afer hitting db" xmlns:ns="http://org.apache.synapse/xsd"/>
+            </log>
+            <property name="messageType" scope="axis2" type="STRING" value="application/json"/>
+            <property name="ContentType" scope="axis2" type="STRING" value="application/json"/>
+            <respond/>
+        </inSequence>
+        <faultSequence>
+            <log level="full"/>
+            <respond/>
+        </faultSequence>
+    </resource>
+    <!-- =================  Get Plan By Created_By ================= -->
+    <resource methods="GET" uri-template="/plans/createdBy/{created_by}">
+        <inSequence>
+            <call>
+                <endpoint>
+                    <http method="GET" uri-template="http://localhost:8290/services/PlanDataService_DSS/GetPlanCreatedBy?created_by={uri.var.created_by}"/>
+                </endpoint>
+            </call>
+            <log level="custom">
+                <property expression="$body" name="!!! afer hitting db" xmlns:ns="http://org.apache.synapse/xsd"/>
+            </log>
+            <property name="messageType" scope="axis2" type="STRING" value="application/json"/>
+            <property name="ContentType" scope="axis2" type="STRING" value="application/json"/>
+            <respond/>
+        </inSequence>
+        <faultSequence>
+            <log level="full"/>
+            <respond/>
+        </faultSequence>
+    </resource>
+    <!-- =================  Get All Plans ================= -->
+    <resource methods="GET" uri-template="/plans/getAllPlans">
+        <inSequence>
+            <call>
+                <endpoint>
+                    <http method="GET" uri-template="http://localhost:8290/services/PlanDataService_DSS/getAllPlans"/>
+                </endpoint>
+            </call>
+            <log level="custom">
+                <property expression="$body" name="!!! afer hitting db" xmlns:ns="http://org.apache.synapse/xsd"/>
+            </log>
+            <property name="messageType" scope="axis2" type="STRING" value="application/json"/>
+            <property name="ContentType" scope="axis2" type="STRING" value="application/json"/>
+            <respond/>
+        </inSequence>
+        <faultSequence>
+            <log level="full"/>
+            <respond/>
+        </faultSequence>
+    </resource>
+    <!-- =================  Get  Plan By Status Active or Archived ================= -->
+    <resource methods="GET" uri-template="/plans/Status/{status}">
+        <inSequence>
+            <call>
+                <endpoint>
+                    <http method="GET" uri-template="http://localhost:8290/services/PlanDataService_DSS/GetPlanByStatusActive?status={uri.var.status}"/>
+                </endpoint>
+            </call>
+            <log level="custom">
+                <property expression="$body" name="!!! afer hitting db" xmlns:ns="http://org.apache.synapse/xsd"/>
+            </log>
+            <property name="messageType" scope="axis2" type="STRING" value="application/json"/>
+            <property name="ContentType" scope="axis2" type="STRING" value="application/json"/>
+            <respond/>
+        </inSequence>
+        <faultSequence>
+            <log level="full"/>
+            <respond/>
+        </faultSequence>
+    </resource>
+    <!-- =================  Get  Plan By Deleted is false  ================= -->
+    <resource methods="GET" uri-template="/plans/DeleteFalse">
+        <inSequence>
+            <call>
+                <endpoint>
+                    <http method="GET" uri-template="http://localhost:8290/services/PlanDataService_DSS/GetPlanByDeleteFalse"/>
+                </endpoint>
+            </call>
+            <log level="custom">
+                <property expression="$body" name="!!! afer hitting db" xmlns:ns="http://org.apache.synapse/xsd"/>
+            </log>
+            <property name="messageType" scope="axis2" type="STRING" value="application/json"/>
+            <property name="ContentType" scope="axis2" type="STRING" value="application/json"/>
+            <respond/>
+        </inSequence>
+        <faultSequence>
+            <log level="full"/>
+            <respond/>
+        </faultSequence>
+    </resource>
+    <!-- =================  Get  Plan By Deleted is True  ================= -->
+    <resource methods="GET" uri-template="/plans/DeleteTrue">
+        <inSequence>
+            <call>
+                <endpoint>
+                    <http method="GET" uri-template="http://localhost:8290/services/PlanDataService_DSS/GetPlanByDeleteTrue"/>
+                </endpoint>
+            </call>
+            <log level="custom">
+                <property expression="$body" name="!!! afer hitting db" xmlns:ns="http://org.apache.synapse/xsd"/>
+            </log>
+            <property name="messageType" scope="axis2" type="STRING" value="application/json"/>
+            <property name="ContentType" scope="axis2" type="STRING" value="application/json"/>
+            <respond/>
+        </inSequence>
+        <faultSequence>
+            <log level="full"/>
+            <respond/>
+        </faultSequence>
+    </resource>
+    <!-- =================  Put Plan API  ================= -->
+    <resource methods="PUT" uri-template="/plans/{id}">
+        <inSequence>
+            <payloadFactory media-type="json">
+                <format>
+                    {
+                    "_putupdatePlan": {
+                    "id": $1,
+                    "name": "$2",
+                    "description":"$3",
+                    "owner_id": $4,
+                    "color": "$5",
+                    "icon": "$6",
+                    "visibility": "$7",
+                    "status":"$8",
+                    "start_date": "$9",
+                    "end_date": "$10",
+                    "tenant_id":"$11",
+                    "version": $12,
+                    "updated_by": $13
+                    }
+                    }
+                </format>
+                <args>
+                    <arg expression="get-property('uri.var.id')"/>
+                    <arg evaluator="json" expression="$.name"/>
+                    <arg evaluator="json" expression="$.description"/>
+                    <arg evaluator="json" expression="$.owner_id"/>
+                    <arg evaluator="json" expression="$.color"/>
+                    <arg evaluator="json" expression="$.icon"/>
+                    <arg evaluator="json" expression="$.visibility"/>
+                    <arg evaluator="json" expression="$.status"/>
+                    <arg evaluator="json" expression="$.start_date"/>
+                    <arg evaluator="json" expression="$.end_date"/>
+                    <arg evaluator="json" expression="$.tenant_id"/>
+                    <arg evaluator="json" expression="$.version"/>
+                    <arg evaluator="json" expression="$.updated_by"/>
+                </args>
+            </payloadFactory>
+            <property name="Accept" value="application/json" scope="transport"/>
+            <call>
+                <endpoint>
+                    <http method="PUT" uri-template="http://localhost:8290/services/PlanDataService_DSS/updatePlan"/>
+                </endpoint>
+            </call>
+            <property name="messageType" value="application/json" scope="axis2"/>
+            <property name="ContentType" value="application/json" scope="axis2"/>
+            <respond/>
+        </inSequence>
+        <faultSequence>
+            <log level="full"/>
+            <respond/>
+        </faultSequence>
+    </resource>
+    <!-- ============================  put user activate ===================== -->
+    <resource methods="PUT" uri-template="/plans/{id}/activate">
+        <inSequence>
+            <payloadFactory media-type="json">
+                <format>
+                    {
+                    "_putactivatePlan":{
+                    "id":$1,
+                    "updated_by":$2
+                    }
+                    }
+                </format>
+                <args>
+                    <arg expression="get-property('uri.var.id')"/>
+                    <arg evaluator="json" expression="$.updated_by"/>
+                </args>
+            </payloadFactory>
+            <property name="Accept" value="application/json" scope="transport"/>
+            <call>
+                <endpoint>
+                    <http method="PUT" uri-template="http://localhost:8290/services/PlanDataService_DSS/activatePlan"/>
+                </endpoint>
+            </call>
+            <payloadFactory media-type="json">
+                <format>
+                    {
+                    "message":"Plan activated successfully"
+                    }
+                </format>
+                <args/>
+            </payloadFactory>
+            <property name="messageType" value="application/json" scope="axis2"/>
+            <property name="ContentType" value="application/json" scope="axis2"/>
+            <respond/>
+        </inSequence>
+        <faultSequence>
+            <log level="full"/>
+            <respond/>
+        </faultSequence>
+    </resource>
+    <!-- ================= put user deactivate ======================= -->
+    <resource methods="PUT" uri-template="/plans/{id}/archive">
+        <inSequence>
+            <payloadFactory media-type="json">
+                <format>
+                    {
+                    "_putdearchivePlan":{
+                    "id":$1,
+                    "updated_by":$2
+                    }
+                    }
+                </format>
+                <args>
+                    <arg expression="get-property('uri.var.id')"/>
+                    <arg evaluator="json" expression="$.updated_by"/>
+                </args>
+            </payloadFactory>
+            <property name="Accept" value="application/json" scope="transport"/>
+            <call>
+                <endpoint>
+                    <http method="PUT" uri-template="http://localhost:8290/services/PlanDataService_DSS/archivePlan"/>
+                </endpoint>
+            </call>
+            <payloadFactory media-type="json">
+                <format>
+                    {
+                    "message":"Plan archived successfully"
+                    }
+                </format>
+                <args/>
+            </payloadFactory>
+            <property name="messageType" value="application/json" scope="axis2"/>
+            <property name="ContentType" value="application/json" scope="axis2"/>
+            <respond/>
+        </inSequence>
+        <faultSequence>
+            <log level="full"/>
+            <respond/>
+        </faultSequence>
+    </resource>
+    <!--  ========================== soft delete user ======================= -->
+    <resource methods="DELETE" uri-template="/plans/{id}">
+        <inSequence>
+            <payloadFactory media-type="json">
+                <format>
+                    {
+                    "_deletedeletePlan":{
+                    "id":$1,
+                    "deleted_by":$2
+                    }
+                    }
+                </format>
+                <args>
+                    <arg expression="get-property('uri.var.id')"/>
+                    <arg evaluator="json" expression="$.deleted_by"/>
+                </args>
+            </payloadFactory>
+            <property name="Accept" value="application/json" scope="transport"/>
+            <call>
+                <endpoint>
+                    <http method="DELETE" uri-template="http://localhost:8290/services/PlanDataService_DSS/deletePlan"/>
+                </endpoint>
+            </call>
+            <payloadFactory media-type="json">
+                <format>
+                    {
+                    "message":"Plan deleted successfully"
+                    }
+                </format>
+                <args/>
+            </payloadFactory>
+            <property name="messageType" value="application/json" scope="axis2"/>
+            <property name="ContentType" value="application/json" scope="axis2"/>
+            <respond/>
+        </inSequence>
+        <faultSequence>
+            <log level="full"/>
             <respond/>
         </faultSequence>
     </resource>
