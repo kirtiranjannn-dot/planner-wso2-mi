@@ -25,9 +25,9 @@
     <!-- ================= Create Plan(Insert User) ============== -->
     <query id="createPlanQuery" useConfig="PlanDataService_DSS">
         <sql>INSERT INTO plans(name, description, uuid,owner_id, color, icon, visibility,
-            start_date, end_date, tenant_id, version, created_by,status)
+                              start_date, end_date, tenant_id, version, created_by,status)
             VALUES (:name, :description, gen_random_uuid(), :owner_id, :color, :icon, :visibility, :start_date,
-            :end_date, :tenant_id, :version, :created_by,:status)
+                    :end_date, :tenant_id, :version, :created_by,:status)
             RETURNING id,owner_id;
         </sql>
         <result element="Plans" rowName="Plan">

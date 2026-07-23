@@ -35,4 +35,135 @@
               <with-param name="role" query-param="role"/>
           </call-query>
       </resource>
+
+    <!-- ================= GET Plan Query By  Plan_id =================== -->
+
+        <query id="getByPlanIdQuery" useConfig="PlanMemberDataService_DSS">
+
+            <sql>
+                SELECT id, plan_id, user_id, role, joined_at 
+                FROM plan_members 
+                WHERE plan_id = :plan_id 
+            </sql>
+
+            <param name="plan_id" sqlType="BIGINT"/>
+
+            <result element="planMembers" rowName="member">
+                <element column="id" name="id"/>
+                <element column="plan_id" name="plan_id"/>
+                <element column="user_id" name="user_id" />
+                <element column="role" name="role"/>
+                <element column="joined_at" name="joined_at"/>
+            </result>
+
+        </query>
+        
+        <resource method="GET" path="planMembers/byPlan/{plan_id}">
+            <call-query href="getByPlanIdQuery">
+                <with-param name="plan_id" query-param="plan_id"/>
+            </call-query>
+        </resource>
+
+    <!-- ================= GET Plan Query By  User_id =================== -->
+        <query id="getByUserIdQuery" useConfig="PlanMemberDataService_DSS">
+
+            <sql>
+                SELECT id, plan_id, user_id, role, joined_at 
+                FROM plan_members 
+                WHERE user_id = :user_id
+            </sql>
+
+            <param name="user_id" sqlType="BIGINT"/>
+
+            <result element="planMembers" rowName="member">
+                <element column="id" name="id" xsdType="integer"/>
+                <element column="plan_id" name="plan_id" xsdType="integer"/>
+                <element column="user_id" name="user_id" xsdType="integer"/>
+                <element column="role" name="role" xsdType="string"/>
+                <element column="joined_at" name="joined_at" xsdType="dateTime"/>
+            </result>
+
+        </query>
+
+        <resource method="GET" path="planMembers/byUser/{user_id}">
+            <call-query href="getByUserIdQuery">
+                <with-param name="user_id" query-param="user_id"/>
+            </call-query>
+        </resource>
+
+    <!-- ================= GET Plan Query By  User_id =================== -->
+
+        <query id="getByRoleQuery" useConfig="PlanMemberDataService_DSS">
+
+            <sql>
+                SELECT id, plan_id, user_id, role, joined_at 
+                FROM plan_members 
+                WHERE role = :role
+            </sql>
+
+            <param name="role" sqlType="STRING"/>
+
+            <result element="planMembers" rowName="member">
+                <element column="id" name="id"/>
+                <element column="plan_id" name="plan_id"/>
+                <element column="user_id" name="user_id"/>
+                <element column="role" name="role"/>
+                <element column="joined_at" name="joined_at"/>
+            </result>
+            
+        </query>
+
+        <resource method="GET" path="planMembers/byRole/{role}">
+            <call-query href="getByRoleQuery">
+                <with-param name="role" query-param="role"/>
+            </call-query>
+        </resource>
+  
+     <!-- ================ UPDATE ALL COLUMNS ======================= -->
+
+        <query id="updateAllColumnsQuery" useConfig="PlanMemberDataService_DSS">
+
+            <sql>
+                UPDATE plan_members 
+                SET plan_id = :plan_id, user_id = :user_id, role = :role 
+                WHERE id = :id
+            </sql>
+
+            <param name="id" sqlType="BIGINT"/>
+            <param name="plan_id" sqlType="BIGINT"/>
+            <param name="user_id" sqlType="BIGINT"/>
+            <param name="role" sqlType="STRING"/>
+
+        </query>
+
+        <resource method="PUT" path="planMembers/{id}">
+            <call-query href="updateAllColumnsQuery">
+                <with-param name="id" query-param="id"/>
+                <with-param name="plan_id" query-param="plan_id"/>
+                <with-param name="user_id" query-param="user_id"/>
+                <with-param name="role" query-param="role"/>
+            </call-query>
+        </resource>
+
+    <!-- ========= UPDATE ONLY ONE COLUMN (role) ========= -->
+
+        <query id="updateRoleOnlyQuery" useConfig="PlanMemberDataService_DSS">
+
+            <sql>
+                UPDATE plan_members 
+                SET role = :role 
+                WHERE id = :id
+            </sql>
+
+            <param name="id" sqlType="BIGINT"/>
+            <param name="role" sqlType="STRING"/>
+        </query>
+
+        <resource method="PUT" path="planMembers/{id}/role">
+            <call-query href="updateRoleOnlyQuery">
+                <with-param name="id" query-param="id"/>
+                <with-param name="role" query-param="role"/>
+            </call-query>
+        </resource>
+
 </data>
