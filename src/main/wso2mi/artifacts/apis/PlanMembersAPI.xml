@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<api context="/planmembers" name="PlanMembersAPI" xmlns="http://ws.apache.org/ns/synapse">
+    <resource methods="POST" uri-template="/addMembers">
+        <inSequence>
+            <property name="owner_id" expression="json-eval($.owner_id)" />
+            <payloadFactory media-type="json">
+                <format>
+                    {
+                    "_postaddPlanMembers":{
+                    "plan_id":$1,
+                    "user_id":$2,
+                    "role":"$3"
+                    }
+                    }
+                </format>
+                <args>
+                    <arg evaluator="json" expression="$.plan_id"/>
+                    <arg evaluator="json" expression="$.user_id"/>
+                    <arg evaluator="json" expression="$.role"/>
+                </args>
+            </payloadFactory>
+            <log level="custom">
+                <property name="before calling backend !!" expression="json-eval($)"/>
+            </log>
+            <call>
+                <endpoint>
+                    <http method="POST" uri-template="http://localhost:8290/services/PlanMembersDataService_DSS/addPlanMembers"/>
+                </endpoint>
+            </call>
+            <log level="full">
+    <property name="AFTER_DS_CALL" value="SUCCESS"/>
+</log>
+
+            <payloadFactory media-type="json">
+                <format>
+                {
+                    "plan_id":"$1",
+                    "user_id":"$2",
+                    "role":"$3",
+                    "owner_id":$4
+                }
+                </format>
+                <args>
+                    <arg evaluator="json" expression="$.User.UserDetails[0].plan_id"/>
+                    <arg evaluator="json" expression="$.User.UserDetails[0].user_id"/>
+                    <arg evaluator="json" expression="$.User.UserDetails[0].role"/>
+                    <arg evaluator="xml" expression="get-property('owner_id')"/>
+                </args>
+            </payloadFactory>
+            <kafkaTransport.publishMessages configKey="PlansEmailSending">
+                <topic>send_email</topic>
+                <!-- <partitionNo>0</partitionNo> -->
+            </kafkaTransport.publishMessages>
+
+            
+            <respond/>
+        </inSequence>
+
+
+        <faultSequence>
+            <log level="full"/>
+            <property name="HTTP_SC" value="500" scope="axis2"/>
+            <payloadFactory media-type="json">
+                <format>
+                    {
+                    "status":"ERROR",
+                    "message":"Internal Server Error"
+                    }
+                </format>
+            </payloadFactory>
+            <respond/>
+        </faultSequence>
+    </resource>
+</api>

@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sequence name="ConsumerSendMail-inboundSequence" trace="disable" xmlns="http://ws.apache.org/ns/synapse">
+<log level="custom">
+    <property name="!!! incoming data in consumer!!!!" expression="json-eval($)" />
+</log>
+<property name="plan_id" expression="json-eval($.plan_id)" />
+<property name="user_id" expression="json-eval($.user_id)" />
+<property name="role" expression="json-eval($.role)" />
+<property name="owner_id" expression="json-eval($.owner_id)" />
+                    
+<!-- ================ getting user details ================= -->
+<payloadFactory media-type="xml">
+                        <format>
+                            <getUserByIdOP>
+                                <id>$1</id>
+                            </getUserByIdOP>
+                        </format>
+                        <args>
+                            <arg evaluator="xml" expression="get-property('user_id')"/>
+                        </args>
+                    </payloadFactory>
+                    <call>
+                        <endpoint key="Get_User_By_Id_Ep"/>
+                    </call>
+                    <property name="messageType" value="application/json" scope="axis2"/>
+                    <property name="ContentType" value="application/json" scope="axis2"/>
+                    <log level="custom">
+                         <property name="!!! User Id Details !!!!" expression="json-eval($)" />
+                    </log>
+ <property name="tomail" expression="json-eval($.User.UserDetails.email)" />
+<property name="username" expression="json-eval($.User.UserDetails.username)"/>
+
+
+<!-- ==================== getting plan details ========================== -->
+
+<payloadFactory media-type="xml">
+                        <format>
+                            <GetPlanByIdOP>
+                                <id>$1</id>
+                            </GetPlanByIdOP>
+                        </format>
+                        <args>
+                            <arg evaluator="xml" expression="get-property('plan_id')"/>
+                        </args>
+                    </payloadFactory>
+                    <call>
+                        <endpoint key="Get_Plan_By_ID_EP"/>
+                    </call>
+                    <property name="messageType" value="application/json" scope="axis2"/>
+                    <property name="ContentType" value="application/json" scope="axis2"/>
+                    <log level="custom">
+                         <property name="!!! Plan Id Details !!!!" expression="json-eval($)" />
+                    <!-- <property name="plan" expression="json-eval($.Plans.Plan)" scope="default"/> -->
+                    </log>
+                    <property name="plan_name" expression="json-eval($.Plans.Plan.name)" scope="default"/>
+                    <property name="plan_desc" expression="json-eval($.Plans.Plan.description)" scope="default"/>
+
+
+<!-- ================= getting owner details ========================== -->
+<payloadFactory media-type="xml">
+                        <format>
+                            <getUserByIdOP>
+                                <id>$1</id>
+                            </getUserByIdOP>
+                        </format>
+                        <args>
+                            <arg evaluator="xml" expression="get-property('owner_id')"/>
+                        </args>
+                    </payloadFactory>
+                    <call>
+                        <endpoint key="Get_User_By_Id_Ep"/>
+                    </call>
+                    <property name="messageType" value="application/json" scope="axis2"/>
+                    <property name="ContentType" value="application/json" scope="axis2"/>
+                    <log level="custom">
+                         <property name="!!! Owner Id Details !!!!" expression="json-eval($)" />
+                    </log>
+<property name="ownername" expression="json-eval($.User.UserDetails.username)"/>
+
+
+<!-- ==================== gmail sending ========================== -->
+<payloadFactory media-type="text">
+    <format>Hello $1,
+
+We are here to inform you that you have been added to the plan "$2" by $3
+
+Plan Description:
+$4
+
+Thanks,
+WSO2 MI</format>
+    <args>
+        <arg expression="get-property('username')" evaluator="xml"/>
+        <arg expression="get-property('plan_name')" evaluator="xml"/>
+        <arg expression="get-property('ownername')" evaluator="xml"/>
+        <arg expression="get-property('plan_desc')" evaluator="xml"/>
+        
+    </args>
+</payloadFactory>
+<enrich>
+    <source clone="true" type="body"/>
+    <target property="mailBody" type="property"/>
+</enrich>
+
+<log level="custom">
+    <property name="To" expression="get-property('tomail')"/>
+    <property name="Username" expression="get-property('username')"/>
+    <property name="Plan" expression="get-property('plan_name')"/>
+    <property name="Description" expression="get-property('plan_desc')"/>
+    <property name="Owner" expression="get-property('ownername')"/>
+    <property name="MailBody" expression="get-property('mailBody')"/>
+</log>
+
+    <gmail.sendMail configKey="planMembersSendGmail">
+        <to>{$ctx:tomail}</to>
+        <subject>Testing Mail of WSO2</subject>
+        <from>kirtiranjannn@gmail.com</from>
+        <messageBody>{$ctx:mailBody}</messageBody>
+        <cc></cc>
+        <bcc></bcc>
+        <id>secure</id>
+        <threadId></threadId>
+        <responseVariable>gmail_sendMail_69</responseVariable>
+        <overwriteBody>false</overwriteBody>
+    </gmail.sendMail>
+</sequence>

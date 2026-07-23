@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<inboundEndpoint name="ConsumerSendMail" class="org.wso2.carbon.inbound.kafka.KafkaMessageConsumer" sequence="ConsumerSendMail-inboundSequence" onError="ConsumerSendMail-inboundErrorSequence">
+    <parameters xmlns="http://ws.apache.org/ns/synapse">
+        <parameter name="interval">10</parameter>
+        <parameter name="sequential">true</parameter>
+        <parameter name="coordination">true</parameter>
+        <parameter name="suspend">false</parameter>
+        <parameter name="bootstrap.servers">192.168.1.221:9092</parameter>
+        <parameter name="topic.name">send_email</parameter>
+        <parameter name="group.id">group1</parameter>
+        <parameter name="contentType">application/json</parameter>
+        <parameter name="poll.timeout">1000</parameter>
+        <parameter name="key.deserializer">org.apache.kafka.common.serialization.StringDeserializer</parameter>
+        <parameter name="value.deserializer">org.apache.kafka.common.serialization.StringDeserializer</parameter>
+        <parameter name="avro.use.logical.type.converters">false</parameter>
+        <parameter name="enable.auto.commit">true</parameter>
+        <parameter name="auto.commit.interval.ms">5000</parameter>
+        <parameter name="auto.offset.reset">latest</parameter>
+        <parameter name="batch.processing.enabled">false</parameter>
+        <parameter name="exclude.internal.topics">true</parameter>
+        <parameter name="check.crcs">true</parameter>
+        <parameter name="partition.assignment.strategy">org.apache.kafka.clients.consumer.RangeAssignor</parameter>
+        <parameter name="max.poll.interval.ms">300000</parameter>
+        <parameter name="max.poll.records">500</parameter>
+        <parameter name="fetch.max.wait.ms">500</parameter>
+        <parameter name="receive.buffer.bytes">65536</parameter>
+        <parameter name="send.buffer.bytes">131072</parameter>
+        <parameter name="request.timeout.ms">305000</parameter>
+        <parameter name="reconnect.backoff.ms">50</parameter>
+        <parameter name="retry.backoff.ms">100</parameter>
+        <parameter name="connections.max.idle.ms">540000</parameter>
+        <parameter name="security.protocol">PLAINTEXT</parameter>
+        <parameter name="metrics.num.samples">2</parameter>
+        <parameter name="metrics.recording.level">INFO</parameter>
+        <parameter name="metrics.sample.window.ms">30000</parameter>
+    </parameters>
+</inboundEndpoint>
