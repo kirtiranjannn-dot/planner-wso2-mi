@@ -1,0 +1,10 @@
+---
+key: "PlanMembersAPI-1.0.0"
+name : "PlanMembersAPI"
+displayName : "PlanMembersAPI"
+description: "PlanMembersAPI"
+version: "1.0.0"
+serviceUrl: "https://{MI_HOST}:{MI_PORT}/planmembers"
+definitionType: "OAS3"
+securityType: "BASIC"
+mutualSSLEnabled: false

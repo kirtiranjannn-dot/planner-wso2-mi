@@ -362,7 +362,7 @@
     </resource>
     <!-- ================= get user by email ================== -->
     <resource methods="GET" uri-template="/users/email/{email}">
-    <!-- try with '%40' instead of @ in postman -->
+        <!-- try with '%40' instead of @ in postman -->
         <inSequence>
             <filter source="get-property('uri.var.email')" regex="^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$">
                 <then>
@@ -434,7 +434,7 @@
                                     "success":false,
                                     "message":"User not found"
                                     }
-</format>
+                                </format>
                             </payloadFactory>
                             <property name="HTTP_SC" value="404" scope="axis2"/>
                             <respond/>
@@ -491,9 +491,9 @@
                         <target property="originalRequest" type="property"/>
                     </enrich>
                     <log level="custom">
-    <property name="URI_VAR_ID" expression="get-property('uri.var.id')"/>
-    <property name="REST_URL_POSTFIX" expression="get-property('REST_URL_POSTFIX')"/>
-</log>
+                        <property name="URI_VAR_ID" expression="get-property('uri.var.id')"/>
+                        <property name="REST_URL_POSTFIX" expression="get-property('REST_URL_POSTFIX')"/>
+                    </log>
                     <payloadFactory media-type="xml">
                         <format>
                             <getUserByIdOP>
@@ -504,14 +504,10 @@
                             <arg evaluator="xml" expression="get-property('uri.var.id')"/>
                         </args>
                     </payloadFactory>
-                  
-                
                     <property name="SOAPAction" scope="transport" type="STRING" value="urn:getUserByIdOP"/>
                     <call>
                         <endpoint key="Get_User_By_Id_Ep"/>
                     </call>
-
-
                     <!-- <call>
                         <endpoint>
                             <http method="GET"
@@ -519,8 +515,8 @@
                         </endpoint>
                     </call> -->
                     <log level="full"/>
-                     <property name="messageType" value="application/json" scope="axis2"/>
-                     <property name="ContentType" value="application/json" scope="axis2"/>
+                    <property name="messageType" value="application/json" scope="axis2"/>
+                    <property name="ContentType" value="application/json" scope="axis2"/>
                     <property name="userDetails_Result" expression="json-eval($.User.UserDetails)" scope="default"/>
                     <filter xpath="get-property('userDetails_Result') = ''">
                         <then>
@@ -647,21 +643,34 @@
     <!--  ========================== soft delete user ======================= -->
     <resource methods="DELETE" uri-template="/users/{id}">
         <inSequence>
+            <log level="custom">
+                <property name="id values !!!" expression="$ctx:uri.var.id"/>
+            </log>
             <filter source="get-property('uri.var.id')" regex="^[0-9]+$">
-                
                 <then>
                     <enrich>
-    <source clone="true" type="body"/>
-    <target property="originalRequest" type="property"/>
-</enrich>
-                    <property name="ContentType" action="remove" scope="axis2"/>
-                    <property name="messageType" action="remove" scope="axis2"/>
+                        <source clone="true" type="body"/>
+                        <target property="originalRequest" type="property"/>
+                    </enrich>
+                    <payloadFactory media-type="xml">
+                        <format>
+                            <getUserByIdOP>
+                                <id>$1</id>
+                            </getUserByIdOP>
+                        </format>
+                        <args>
+                            <arg evaluator="xml" expression="get-property('uri.var.id')"/>
+                        </args>
+                    </payloadFactory>
                     <call>
-                        <endpoint>
-                            <http method="GET" uri-template="http://localhost:8290/services/UserDataService_DSS/getUserById?id={uri.var.id}"/>
-                        </endpoint>
+                        <endpoint key="Get_User_By_Id_Ep"/>
                     </call>
+                    <property name="messageType" value="application/json" scope="axis2"/>
+                    <property name="ContentType" value="application/json" scope="axis2"/>
                     <property name="userDetails_Result" expression="json-eval($.User.UserDetails)" scope="default"/>
+                    <log level="custom">
+                        <property name="userDetails_Result" expression="json-eval($.User.UserDetails)" scope="default"/>
+                    </log>
                     <filter xpath="get-property('userDetails_Result') = ''">
                         <then>
                             <payloadFactory media-type="json">
@@ -677,9 +686,9 @@
                         </then>
                         <else>
                             <enrich>
-    <source property="originalRequest" type="property"/>
-    <target type="body"/>
-</enrich>
+                                <source property="originalRequest" type="property"/>
+                                <target type="body"/>
+                            </enrich>
                             <payloadFactory media-type="json">
                                 <format>
                                     {
@@ -740,12 +749,29 @@
         <inSequence>
             <filter source="get-property('uri.var.id')" regex="^[0-9]+$">
                 <then>
+                    <enrich>
+                        <source clone="true" type="body"/>
+                        <target property="originalRequest" type="property"/>
+                    </enrich>
+                    <payloadFactory media-type="xml">
+                        <format>
+                            <getUserByIdOP>
+                                <id>$1</id>
+                            </getUserByIdOP>
+                        </format>
+                        <args>
+                            <arg evaluator="xml" expression="get-property('uri.var.id')"/>
+                        </args>
+                    </payloadFactory>
                     <call>
-                        <endpoint>
-                            <http method="GET" uri-template="http://localhost:8290/services/UserDataService_DSS/getUserById?id={uri.var.id}"/>
-                        </endpoint>
+                        <endpoint key="Get_User_By_Id_Ep"/>
                     </call>
+                    <property name="messageType" value="application/json" scope="axis2"/>
+                    <property name="ContentType" value="application/json" scope="axis2"/>
                     <property name="userDetails_Result" expression="json-eval($.User.UserDetails)" scope="default"/>
+                    <log level="custom">
+                        <property name="userDetails_Result" expression="json-eval($.User.UserDetails)" scope="default"/>
+                    </log>
                     <filter xpath="get-property('userDetails_Result') = ''">
                         <then>
                             <payloadFactory media-type="json">
@@ -760,6 +786,10 @@
                             <respond/>
                         </then>
                         <else>
+                            <enrich>
+                                <source property="originalRequest" type="property"/>
+                                <target type="body"/>
+                            </enrich>
                             <payloadFactory media-type="json">
                                 <format>
                                     {
@@ -774,6 +804,9 @@
                                     <arg evaluator="json" expression="$.updated_by"/>
                                 </args>
                             </payloadFactory>
+                            <log level="custom">
+                                <property name="Body !!!!!" expression="json-eval($)"/>
+                            </log>
                             <property name="Accept" value="application/json" scope="transport"/>
                             <call>
                                 <endpoint>
@@ -791,7 +824,7 @@
                             </payloadFactory>
                             <property name="messageType" value="application/json" scope="axis2"/>
                             <property name="ContentType" value="application/json" scope="axis2"/>
-                            <property name="HTTP_SC" value="200" scope="axis2"/>
+                            <!-- <property name="HTTP_SC" value="200" scope="axis2"/> -->
                             <respond/>
                         </else>
                     </filter>
@@ -820,12 +853,29 @@
         <inSequence>
             <filter source="get-property('uri.var.id')" regex="^[0-9]+$">
                 <then>
+                    <enrich>
+                        <source clone="true" type="body"/>
+                        <target property="originalRequest" type="property"/>
+                    </enrich>
+                    <payloadFactory media-type="xml">
+                        <format>
+                            <getUserByIdOP>
+                                <id>$1</id>
+                            </getUserByIdOP>
+                        </format>
+                        <args>
+                            <arg evaluator="xml" expression="get-property('uri.var.id')"/>
+                        </args>
+                    </payloadFactory>
                     <call>
-                        <endpoint>
-                            <http method="GET" uri-template="http://localhost:8290/services/UserDataService_DSS/getUserById?id={uri.var.id}"/>
-                        </endpoint>
+                        <endpoint key="Get_User_By_Id_Ep"/>
                     </call>
+                    <property name="messageType" value="application/json" scope="axis2"/>
+                    <property name="ContentType" value="application/json" scope="axis2"/>
                     <property name="userDetails_Result" expression="json-eval($.User.UserDetails)" scope="default"/>
+                    <log level="custom">
+                        <property name="userDetails_Result" expression="json-eval($.User.UserDetails)" scope="default"/>
+                    </log>
                     <filter xpath="get-property('userDetails_Result') = ''">
                         <then>
                             <payloadFactory media-type="json">
@@ -840,6 +890,10 @@
                             <respond/>
                         </then>
                         <else>
+                            <enrich>
+                                <source property="originalRequest" type="property"/>
+                                <target type="body"/>
+                            </enrich>
                             <payloadFactory media-type="json">
                                 <format>
                                     {

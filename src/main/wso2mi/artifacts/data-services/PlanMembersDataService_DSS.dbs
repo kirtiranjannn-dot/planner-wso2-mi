@@ -20,19 +20,131 @@
                   :plan_id,
                   :user_id,
                   :role
-              );
+              )
+              RETURNING id , plan_id,user_id,role;
           </sql>
+           <result element="User" rowName="UserDetails">
+            <element column="id" name="id"/>
+            <element column="plan_id" name="plan_id"/>
+            <element column="user_id" name="user_id"/>
+            <element column="role" name="role"/>
+           </result>
 
           <param name="plan_id" sqlType="BIGINT"/>
           <param name="user_id" sqlType="BIGINT"/>
           <param name="role" sqlType="STRING"/>
       </query>
 
-      <resource method="POST" path="planMembers">
+      <resource method="POST" path="addPlanMembers">
           <call-query href="insertPlanMemberQuery">
               <with-param name="plan_id" query-param="plan_id"/>
               <with-param name="user_id" query-param="user_id"/>
               <with-param name="role" query-param="role"/>
           </call-query>
       </resource>
+
+
+<!-- ==================== validate plan id ======================= -->
+      <query id="validatePlanQuery" useConfig="PlanMemberDataService_DSS">
+
+    <sql>
+        SELECT id
+        FROM plans
+        WHERE id=:plan_id
+        AND is_deleted=false
+    </sql>
+
+    <result element="Plan" rowName="PlanDetails">
+        <element column="id" name="id"/>
+    </result>
+
+    <param name="plan_id" sqlType="BIGINT"/>
+
+</query>
+
+<resource method="GET" path="validatePlan">
+    <call-query href="validatePlanQuery">
+        <with-param name="plan_id" query-param="plan_id"/>
+    </call-query>
+</resource>
+
+<!-- ======================= validate user id ====================== -->
+<query id="validateUserQuery" useConfig="PlanMemberDataService_DSS">
+
+    <sql>
+        SELECT id
+        FROM users
+        WHERE id=:user_id
+        AND is_deleted=false
+    </sql>
+
+    <result element="User" rowName="UserDetails">
+        <element column="id" name="id"/>
+    </result>
+
+    <param name="user_id" sqlType="BIGINT"/>
+
+</query>
+
+<resource method="GET" path="validateUser">
+    <call-query href="validateUserQuery">
+        <with-param name="user_id" query-param="user_id"/>
+    </call-query>
+</resource>
+
+<!-- ============================ validate owner / admin ================= -->
+<query id="validateOwnerQuery" useConfig="PlanMemberDataService_DSS">
+
+    <sql>
+        SELECT id
+        FROM plan_members
+        WHERE
+            plan_id=:plan_id
+        AND user_id=:owner_id
+        AND role IN ('OWNER','ADMIN')
+    </sql>
+
+    <result element="Owner" rowName="OwnerDetails">
+        <element column="id" name="id"/>
+    </result>
+
+    <param name="plan_id" sqlType="BIGINT"/>
+    <param name="owner_id" sqlType="BIGINT"/>
+
+</query>
+
+<resource method="GET" path="validateOwner">
+    <call-query href="validateOwnerQuery">
+        <with-param name="plan_id" query-param="plan_id"/>
+        <with-param name="owner_id" query-param="owner_id"/>
+    </call-query>
+</resource>
+
+
+<!-- =================== validate duplicate member================ -->
+<query id="validateMemberQuery" useConfig="PlanMemberDataService_DSS">
+
+    <sql>
+        SELECT id
+        FROM plan_members
+        WHERE
+        plan_id=:plan_id
+        AND user_id=:user_id
+    </sql>
+
+    <result element="Member" rowName="MemberDetails">
+        <element column="id" name="id"/>
+    </result>
+
+    <param name="plan_id" sqlType="BIGINT"/>
+    <param name="user_id" sqlType="BIGINT"/>
+
+</query>
+
+<resource method="GET" path="validateMember">
+    <call-query href="validateMemberQuery">
+        <with-param name="plan_id" query-param="plan_id"/>
+        <with-param name="user_id" query-param="user_id"/>
+    </call-query>
+</resource>
 </data>
