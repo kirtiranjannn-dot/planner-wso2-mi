@@ -23,7 +23,7 @@
         </call-query>
     </operation>
     <!-- ================= Create Plan(Insert User) ============== -->
-    <query id="createPlanQuery" useConfig="PlanDataService_DSS">
+    <query id="createPlanQuery" useConfig="PlanDataService_DSS"> 
         <sql>INSERT INTO plans(name, description, uuid,owner_id, color, icon, visibility,
                               start_date, end_date, tenant_id, version, created_by,status)
             VALUES (:name, :description, gen_random_uuid(), :owner_id, :color, :icon, :visibility, :start_date,
@@ -125,6 +125,11 @@
             <with-param name="id" query-param="id"/>
         </call-query>
     </resource>
+    <operation name="GetPlanByIdOP">
+        <call-query href="getPlanByid">
+            <with-param name="id" query-param="id"/>
+        </call-query>
+    </operation>
     <!-- ================= Get Plan By Created ID ============== -->
     <query id="getPlanByCreatedid" useConfig="PlanDataService_DSS">
         <sql>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<localEntry key="PlansEmailSending" xmlns="http://ws.apache.org/ns/synapse">
+  <kafkaTransport.init>
+    <connectionType>KAFKA</connectionType>
+    <bootstrapServers>192.168.1.221:9092</bootstrapServers>
+    <keySerializerClass>org.apache.kafka.common.serialization.StringSerializer</keySerializerClass>
+    <valueSerializerClass>org.apache.kafka.common.serialization.StringSerializer</valueSerializerClass>
+    <autoRegisterSchemas/>
+    <useLatestVersion/>
+    <compressionType/>
+    <acks/>
+    <enableIdempotence/>
+    <poolingEnabled>false</poolingEnabled>
+    <name>PlansEmailSending</name>
+  </kafkaTransport.init>
+</localEntry>

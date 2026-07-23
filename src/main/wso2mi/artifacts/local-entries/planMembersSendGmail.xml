@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<localEntry key="planMembersSendGmail" xmlns="http://ws.apache.org/ns/synapse">
+  <gmail.init>
+    <connectionType>GMAIL</connectionType>
+    <ClientId>${CLIENT_ID}</ClientId>
+<ClientSecret>${CLIENT_SECRET}</ClientSecret>
+<RefreshToken>${REFRESH_TOKEN}</RefreshToken>
+    <apiUrl>https://www.googleapis.com/gmail</apiUrl>
+    <apiVersion>v1</apiVersion>
+    <userId>me</userId>
+    <tokenEndpoint>https://oauth2.googleapis.com/token</tokenEndpoint>
+    <name>planMembersSendGmail</name>
+  </gmail.init>
+</localEntry>

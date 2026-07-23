@@ -3,9 +3,7 @@
     <config id="UserDataService_DSS">
         <property name="carbon_datasource_name">Postgres_DS</property>
     </config>
-
-<!-- ================= Create User (Insert User) ============== -->
-
+    <!-- ================= Create User (Insert User) ============== -->
     <query id="createUserDetails" useConfig="UserDataService_DSS" keyColumn="id" returnGeneratedKeys="true">
         <sql>
             INSERT INTO users (
@@ -74,69 +72,10 @@
             <with-param name="created_by" query-param="created_by"/>
         </call-query>
     </resource>
-
-
-<!-- ================= get all users  ============== -->
-
+    <!-- ================= get all users  ============== -->
     <query id="getAllUsersQuery" useConfig="UserDataService_DSS">
-
-    <sql>
-        SELECT
-        id,
-        uuid,
-        username,
-        email,
-        first_name,
-        last_name,
-        display_name,
-        profile_image,
-        status,
-        last_login,
-        tenant_id,
-        version,
-        created_by,
-        created_at,
-        updated_by,
-        updated_at
-        FROM users
-        WHERE is_deleted=false
-        ORDER BY id;
-    </sql>
-
-    <result element="Users" rowName="User">
-
-        <element column="id" name="id"/>
-        <element column="uuid" name="uuid"/>
-        <element column="username" name="username"/>
-        <element column="email" name="email"/>
-        <element column="first_name" name="first_name"/>
-        <element column="last_name" name="last_name"/>
-        <element column="display_name" name="display_name"/>
-        <element column="profile_image" name="profile_image"/>
-        <element column="status" name="status"/>
-        <element column="last_login" name="last_login"/>
-        <element column="tenant_id" name="tenant_id"/>
-        <element column="version" name="version"/>
-        <element column="created_by" name="created_by"/>
-        <element column="created_at" name="created_at"/>
-        <element column="updated_by" name="updated_by"/>
-        <element column="updated_at" name="updated_at"/>
-
-    </result>
-
-</query>
-<resource method="GET" path="getAllUsers">
-
-    <call-query href="getAllUsersQuery"/>
-
-</resource>
-
-<!-- ======================= Get Users By ID =================== -->
-
-<query id="getUserByIdQuery" useConfig="UserDataService_DSS">
-
-    <sql>
-        SELECT
+        <sql>
+            SELECT
             id,
             uuid,
             username,
@@ -153,52 +92,36 @@
             created_at,
             updated_by,
             updated_at
-        FROM users
-        WHERE id = :id
-          AND is_deleted = FALSE;
-    </sql>
-
-    <result element="User" rowName="UserDetails">
-
-        <element column="id" name="id"/>
-        <element column="uuid" name="uuid"/>
-        <element column="username" name="username"/>
-        <element column="email" name="email"/>
-        <element column="first_name" name="first_name"/>
-        <element column="last_name" name="last_name"/>
-        <element column="display_name" name="display_name"/>
-        <element column="profile_image" name="profile_image"/>
-        <element column="status" name="status"/>
-        <element column="last_login" name="last_login"/>
-        <element column="tenant_id" name="tenant_id"/>
-        <element column="version" name="version"/>
-        <element column="created_by" name="created_by"/>
-        <element column="created_at" name="created_at"/>
-        <element column="updated_by" name="updated_by"/>
-        <element column="updated_at" name="updated_at"/>
-
-    </result>
-
-    <param name="id" sqlType="BIGINT"/>
-
-</query>
-<resource method="GET" path="getUserById">
-
-    <call-query href="getUserByIdQuery">
-
-        <with-param name="id" query-param="id"/>
-
-    </call-query>
-
-</resource>
-
-
-<!-- ====================== get user by uuid ================== -->
-
-<query id="getUserByUUIDQuery" useConfig="UserDataService_DSS">
-
-    <sql>
-        SELECT
+            FROM users
+            WHERE is_deleted=false
+            ORDER BY id;
+        </sql>
+        <result element="Users" rowName="User">
+            <element column="id" name="id"/>
+            <element column="uuid" name="uuid"/>
+            <element column="username" name="username"/>
+            <element column="email" name="email"/>
+            <element column="first_name" name="first_name"/>
+            <element column="last_name" name="last_name"/>
+            <element column="display_name" name="display_name"/>
+            <element column="profile_image" name="profile_image"/>
+            <element column="status" name="status"/>
+            <element column="last_login" name="last_login"/>
+            <element column="tenant_id" name="tenant_id"/>
+            <element column="version" name="version"/>
+            <element column="created_by" name="created_by"/>
+            <element column="created_at" name="created_at"/>
+            <element column="updated_by" name="updated_by"/>
+            <element column="updated_at" name="updated_at"/>
+        </result>
+    </query>
+    <resource method="GET" path="getAllUsers">
+        <call-query href="getAllUsersQuery"/>
+    </resource>
+    <!-- ======================= Get Users By ID =================== -->
+    <query id="getUserByIdQuery" useConfig="UserDataService_DSS">
+        <sql>
+            SELECT
             id,
             uuid,
             username,
@@ -215,52 +138,44 @@
             created_at,
             updated_by,
             updated_at
-        FROM users
-        WHERE uuid = :uuid
-          AND is_deleted = FALSE;
-    </sql>
-
-    <result element="User" rowName="UserDetails">
-
-        <element column="id" name="id"/>
-        <element column="uuid" name="uuid"/>
-        <element column="username" name="username"/>
-        <element column="email" name="email"/>
-        <element column="first_name" name="first_name"/>
-        <element column="last_name" name="last_name"/>
-        <element column="display_name" name="display_name"/>
-        <element column="profile_image" name="profile_image"/>
-        <element column="status" name="status"/>
-        <element column="last_login" name="last_login"/>
-        <element column="tenant_id" name="tenant_id"/>
-        <element column="version" name="version"/>
-        <element column="created_by" name="created_by"/>
-        <element column="created_at" name="created_at"/>
-        <element column="updated_by" name="updated_by"/>
-        <element column="updated_at" name="updated_at"/>
-
-    </result>
-
-    <param name="uuid" sqlType="STRING"/>
-
-</query>
-<resource method="GET" path="getUserByUUID">
-
-    <call-query href="getUserByUUIDQuery">
-
-        <with-param name="uuid" query-param="uuid"/>
-
-    </call-query>
-
-</resource>
-
-
-<!-- ================== get user by username ============== -->
-
-<query id="getUserByUsernameQuery" useConfig="UserDataService_DSS">
-
-    <sql>
-        SELECT
+            FROM users
+            WHERE id = :id
+            AND is_deleted = FALSE;
+        </sql>
+        <result element="User" rowName="UserDetails">
+            <element column="id" name="id"/>
+            <element column="uuid" name="uuid"/>
+            <element column="username" name="username"/>
+            <element column="email" name="email"/>
+            <element column="first_name" name="first_name"/>
+            <element column="last_name" name="last_name"/>
+            <element column="display_name" name="display_name"/>
+            <element column="profile_image" name="profile_image"/>
+            <element column="status" name="status"/>
+            <element column="last_login" name="last_login"/>
+            <element column="tenant_id" name="tenant_id"/>
+            <element column="version" name="version"/>
+            <element column="created_by" name="created_by"/>
+            <element column="created_at" name="created_at"/>
+            <element column="updated_by" name="updated_by"/>
+            <element column="updated_at" name="updated_at"/>
+        </result>
+        <param name="id" sqlType="BIGINT"/>
+    </query>
+    <resource method="GET" path="getUserById">
+        <call-query href="getUserByIdQuery">
+            <with-param name="id" query-param="id"/>
+        </call-query>
+    </resource>
+    <operation name="getUserByIdOP">
+        <call-query href="getUserByIdQuery">
+            <with-param name="id" query-param="id"/>
+        </call-query>
+    </operation>
+    <!-- ====================== get user by uuid ================== -->
+    <query id="getUserByUUIDQuery" useConfig="UserDataService_DSS">
+        <sql>
+            SELECT
             id,
             uuid,
             username,
@@ -277,52 +192,39 @@
             created_at,
             updated_by,
             updated_at
-        FROM users
-        WHERE username = :username
-          AND is_deleted = FALSE;
-    </sql>
-
-    <result element="User" rowName="UserDetails">
-
-        <element column="id" name="id"/>
-        <element column="uuid" name="uuid"/>
-        <element column="username" name="username"/>
-        <element column="email" name="email"/>
-        <element column="first_name" name="first_name"/>
-        <element column="last_name" name="last_name"/>
-        <element column="display_name" name="display_name"/>
-        <element column="profile_image" name="profile_image"/>
-        <element column="status" name="status"/>
-        <element column="last_login" name="last_login"/>
-        <element column="tenant_id" name="tenant_id"/>
-        <element column="version" name="version"/>
-        <element column="created_by" name="created_by"/>
-        <element column="created_at" name="created_at"/>
-        <element column="updated_by" name="updated_by"/>
-        <element column="updated_at" name="updated_at"/>
-
-    </result>
-
-    <param name="username" sqlType="STRING"/>
-
-</query>
-
-<resource method="GET" path="getUserByUsername">
-
-    <call-query href="getUserByUsernameQuery">
-
-        <with-param name="username" query-param="username"/>
-
-    </call-query>
-
-</resource>
-
-<!-- ======================== get user by email ================= -->
-
-<query id="getUserByEmailQuery" useConfig="UserDataService_DSS">
-
-    <sql>
-        SELECT
+            FROM users
+            WHERE uuid = :uuid
+            AND is_deleted = FALSE;
+        </sql>
+        <result element="User" rowName="UserDetails">
+            <element column="id" name="id"/>
+            <element column="uuid" name="uuid"/>
+            <element column="username" name="username"/>
+            <element column="email" name="email"/>
+            <element column="first_name" name="first_name"/>
+            <element column="last_name" name="last_name"/>
+            <element column="display_name" name="display_name"/>
+            <element column="profile_image" name="profile_image"/>
+            <element column="status" name="status"/>
+            <element column="last_login" name="last_login"/>
+            <element column="tenant_id" name="tenant_id"/>
+            <element column="version" name="version"/>
+            <element column="created_by" name="created_by"/>
+            <element column="created_at" name="created_at"/>
+            <element column="updated_by" name="updated_by"/>
+            <element column="updated_at" name="updated_at"/>
+        </result>
+        <param name="uuid" sqlType="STRING"/>
+    </query>
+    <resource method="GET" path="getUserByUUID">
+        <call-query href="getUserByUUIDQuery">
+            <with-param name="uuid" query-param="uuid"/>
+        </call-query>
+    </resource>
+    <!-- ================== get user by username ============== -->
+    <query id="getUserByUsernameQuery" useConfig="UserDataService_DSS">
+        <sql>
+            SELECT
             id,
             uuid,
             username,
@@ -339,139 +241,173 @@
             created_at,
             updated_by,
             updated_at
-        FROM users
-        WHERE email = :email
-          AND is_deleted = FALSE;
-    </sql>
-
-    <result element="User" rowName="UserDetails">
-
-        <element column="id" name="id"/>
-        <element column="uuid" name="uuid"/>
-        <element column="username" name="username"/>
-        <element column="email" name="email"/>
-        <element column="first_name" name="first_name"/>
-        <element column="last_name" name="last_name"/>
-        <element column="display_name" name="display_name"/>
-        <element column="profile_image" name="profile_image"/>
-        <element column="status" name="status"/>
-        <element column="last_login" name="last_login"/>
-        <element column="tenant_id" name="tenant_id"/>
-        <element column="version" name="version"/>
-        <element column="created_by" name="created_by"/>
-        <element column="created_at" name="created_at"/>
-        <element column="updated_by" name="updated_by"/>
-        <element column="updated_at" name="updated_at"/>
-
-    </result>
-
-    <param name="email" sqlType="STRING"/>
-
-</query>
-<resource method="GET" path="getUserByEmail">
-
-    <call-query href="getUserByEmailQuery">
-
-        <with-param name="email" query-param="email"/>
-
-    </call-query>
-
-</resource>
-
-
-<!-- =================== put update user =================== -->
-
-<query id="updateUserQuery" useConfig="UserDataService_DSS">
-
-    <sql>
-        UPDATE users
-SET
-    username = :username,
-    email = :email,
-    first_name = :first_name,
-    last_name = :last_name,
-    display_name = :display_name,
-    profile_image = :profile_image,
-    tenant_id = :tenant_id,
-    version = version + 1,
-    updated_by = :updated_by,
-    updated_at = CURRENT_TIMESTAMP
-WHERE id = :id
-AND is_deleted = FALSE
-RETURNING
-id,
-uuid,
-username,
-email,
-first_name,
-last_name,
-display_name,
-profile_image,
-status,
-last_login,
-tenant_id,
-version,
-created_by,
-created_at,
-updated_by,
-updated_at;
-    </sql>
-
-    <result element="User" rowName="UserDetails">
-
-    <element column="id" name="id"/>
-    <element column="uuid" name="uuid"/>
-    <element column="username" name="username"/>
-    <element column="email" name="email"/>
-    <element column="first_name" name="first_name"/>
-    <element column="last_name" name="last_name"/>
-    <element column="display_name" name="display_name"/>
-    <element column="profile_image" name="profile_image"/>
-    <element column="status" name="status"/>
-    <element column="last_login" name="last_login"/>
-    <element column="tenant_id" name="tenant_id"/>
-    <element column="version" name="version"/>
-    <element column="created_by" name="created_by"/>
-    <element column="created_at" name="created_at"/>
-    <element column="updated_by" name="updated_by"/>
-    <element column="updated_at" name="updated_at"/>
-
-</result>
-
-    <param name="id" sqlType="BIGINT"/>
-    <param name="username" sqlType="STRING"/>
-    <param name="email" sqlType="STRING"/>
-    <param name="first_name" sqlType="STRING"/>
-    <param name="last_name" sqlType="STRING"/>
-    <param name="display_name" sqlType="STRING"/>
-    <param name="profile_image" sqlType="STRING"/>
-    <param name="tenant_id" sqlType="STRING"/>
-    <param name="version" sqlType="INTEGER"/>
-    <param name="updated_by" sqlType="BIGINT"/>
-
-</query>
-
-<resource method="PUT" path="updateUser">
-
-    <call-query href="updateUserQuery">
-
-        <with-param name="id" query-param="id"/>
-        <with-param name="username" query-param="username"/>
-        <with-param name="email" query-param="email"/>
-        <with-param name="first_name" query-param="first_name"/>
-        <with-param name="last_name" query-param="last_name"/>
-        <with-param name="display_name" query-param="display_name"/>
-        <with-param name="profile_image" query-param="profile_image"/>
-        <with-param name="tenant_id" query-param="tenant_id"/>
-        <with-param name="version" query-param="version"/>
-        <with-param name="updated_by" query-param="updated_by"/>
-
-    </call-query>
-
-</resource>
-
-
-<!-- ======================== soft delete user ====================== -->
+            FROM users
+            WHERE username =:username
+            AND is_deleted = FALSE;
+        </sql>
+        <result element="User" rowName="UserDetails">
+            <element column="id" name="id"/>
+            <element column="uuid" name="uuid"/>
+            <element column="username" name="username"/>
+            <element column="email" name="email"/>
+            <element column="first_name" name="first_name"/>
+            <element column="last_name" name="last_name"/>
+            <element column="display_name" name="display_name"/>
+            <element column="profile_image" name="profile_image"/>
+            <element column="status" name="status"/>
+            <element column="last_login" name="last_login"/>
+            <element column="tenant_id" name="tenant_id"/>
+            <element column="version" name="version"/>
+            <element column="created_by" name="created_by"/>
+            <element column="created_at" name="created_at"/>
+            <element column="updated_by" name="updated_by"/>
+            <element column="updated_at" name="updated_at"/>
+        </result>
+        <param name="username" sqlType="STRING"/>
+    </query>
+    <resource method="GET" path="getUserByUsername">
+        <call-query href="getUserByUsernameQuery">
+            <with-param name="username" query-param="username"/>
+        </call-query>
+    </resource>
+    <operation name="getUserByUsernameOP">
+        <call-query href="getUserByUsernameQuery">
+            <with-param name="username" query-param="username"/>
+        </call-query>
+    </operation>
+    <!-- ======================== get user by email ================= -->
+    <query id="getUserByEmailQuery" useConfig="UserDataService_DSS">
+        <sql>
+            SELECT
+            id,
+            uuid,
+            username,
+            email,
+            first_name,
+            last_name,
+            display_name,
+            profile_image,
+            status,
+            last_login,
+            tenant_id,
+            version,
+            created_by,
+            created_at,
+            updated_by,
+            updated_at
+            FROM users
+            WHERE email = :email
+            AND is_deleted = FALSE;
+        </sql>
+        <result element="User" rowName="UserDetails">
+            <element column="id" name="id"/>
+            <element column="uuid" name="uuid"/>
+            <element column="username" name="username"/>
+            <element column="email" name="email"/>
+            <element column="first_name" name="first_name"/>
+            <element column="last_name" name="last_name"/>
+            <element column="display_name" name="display_name"/>
+            <element column="profile_image" name="profile_image"/>
+            <element column="status" name="status"/>
+            <element column="last_login" name="last_login"/>
+            <element column="tenant_id" name="tenant_id"/>
+            <element column="version" name="version"/>
+            <element column="created_by" name="created_by"/>
+            <element column="created_at" name="created_at"/>
+            <element column="updated_by" name="updated_by"/>
+            <element column="updated_at" name="updated_at"/>
+        </result>
+        <param name="email" sqlType="STRING"/>
+    </query>
+    <resource method="GET" path="getUserByEmail">
+        <call-query href="getUserByEmailQuery">
+            <with-param name="email" query-param="email"/>
+        </call-query>
+    </resource>
+    <operation name="getUserByEmailOP">
+        <call-query href="getUserByEmailQuery">
+            <with-param name="email" query-param="email"/>
+        </call-query>
+    </operation>
+    <!-- =================== put update user =================== -->
+    <query id="updateUserQuery" useConfig="UserDataService_DSS">
+        <sql>
+            UPDATE users
+            SET
+            username = :username,
+            email = :email,
+            first_name = :first_name,
+            last_name = :last_name,
+            display_name = :display_name,
+            profile_image = :profile_image,
+            tenant_id = :tenant_id,
+            version = version + 1,
+            updated_by = :updated_by,
+            updated_at = CURRENT_TIMESTAMP
+            WHERE id = :id
+            AND is_deleted = FALSE
+            RETURNING
+            id,
+            uuid,
+            username,
+            email,
+            first_name,
+            last_name,
+            display_name,
+            profile_image,
+            status,
+            last_login,
+            tenant_id,
+            version,
+            created_by,
+            created_at,
+            updated_by,
+            updated_at;
+        </sql>
+        <result element="User" rowName="UserDetails">
+            <element column="id" name="id"/>
+            <element column="uuid" name="uuid"/>
+            <element column="username" name="username"/>
+            <element column="email" name="email"/>
+            <element column="first_name" name="first_name"/>
+            <element column="last_name" name="last_name"/>
+            <element column="display_name" name="display_name"/>
+            <element column="profile_image" name="profile_image"/>
+            <element column="status" name="status"/>
+            <element column="last_login" name="last_login"/>
+            <element column="tenant_id" name="tenant_id"/>
+            <element column="version" name="version"/>
+            <element column="created_by" name="created_by"/>
+            <element column="created_at" name="created_at"/>
+            <element column="updated_by" name="updated_by"/>
+            <element column="updated_at" name="updated_at"/>
+        </result>
+        <param name="id" sqlType="BIGINT"/>
+        <param name="username" sqlType="STRING"/>
+        <param name="email" sqlType="STRING"/>
+        <param name="first_name" sqlType="STRING"/>
+        <param name="last_name" sqlType="STRING"/>
+        <param name="display_name" sqlType="STRING"/>
+        <param name="profile_image" sqlType="STRING"/>
+        <param name="tenant_id" sqlType="STRING"/>
+        <param name="version" sqlType="INTEGER"/>
+        <param name="updated_by" sqlType="BIGINT"/>
+    </query>
+    <resource method="PUT" path="updateUser">
+        <call-query href="updateUserQuery">
+            <with-param name="id" query-param="id"/>
+            <with-param name="username" query-param="username"/>
+            <with-param name="email" query-param="email"/>
+            <with-param name="first_name" query-param="first_name"/>
+            <with-param name="last_name" query-param="last_name"/>
+            <with-param name="display_name" query-param="display_name"/>
+            <with-param name="profile_image" query-param="profile_image"/>
+            <with-param name="tenant_id" query-param="tenant_id"/>
+            <with-param name="version" query-param="version"/>
+            <with-param name="updated_by" query-param="updated_by"/>
+        </call-query>
+    </resource>
+    <!-- ======================== soft delete user ====================== -->
 
 <query id="deleteUserQuery" useConfig="UserDataService_DSS">
 
@@ -575,7 +511,7 @@ updated_at;
 
     </result>
 
-</query>
+</query>                                          
 <resource method="GET" path="getUserCount">
 
     <call-query href="getUserCountQuery"/>
